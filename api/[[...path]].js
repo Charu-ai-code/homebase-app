@@ -59,8 +59,16 @@ const ROUTES = {
 };
 
 export default async function handler(req, res) {
+  let path = '';
   const segments = req.query.path;
-  const path = Array.isArray(segments) ? segments.join('/') : (segments || '');
+  if (Array.isArray(segments)) path = segments.join('/');
+  else if (segments) path = String(segments);
+
+  if (!path && req.url) {
+    const raw = req.url.split('?')[0];
+    path = raw.replace(/^\/api\/?/, '');
+  }
+
   const fn = ROUTES[path];
   if (!fn) {
     res.status(404).json({ error: 'Not found', path });
