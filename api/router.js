@@ -60,13 +60,13 @@ const ROUTES = {
 
 export default async function handler(req, res) {
   let path = '';
-  const segments = req.query.path;
-  if (Array.isArray(segments)) path = segments.join('/');
-  else if (segments) path = String(segments);
+  const q = req.query.path;
+  if (Array.isArray(q)) path = q.join('/');
+  else if (q) path = String(q);
 
   if (!path && req.url) {
     const raw = req.url.split('?')[0];
-    path = raw.replace(/^\/api\/?/, '');
+    path = raw.replace(/^\/api\/?/, '').replace(/^\/router\/?/, '');
   }
 
   const fn = ROUTES[path];
