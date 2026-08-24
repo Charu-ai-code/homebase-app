@@ -9,11 +9,6 @@ const PEOPLE = {
 };
 const PROTEIN_FLOOR = 110; // grams, shared floor for both people
 
-const WHOOP = {
-  charu: { recovery: 42, sleep: '6h 12m', strain: 8.4 },
-  shreya: { recovery: 81, sleep: '7h 48m', strain: 14.2 },
-};
-
 const TODAY_INDEX = 3; // Thursday 27 August, within WEEK below
 
 const WEEK = [
@@ -99,7 +94,7 @@ const WEEK = [
   },
   {
     key: 'fri', label: 'FRI', date: 28, full: 'Friday 28 August',
-    who: { charu: 'Low recovery', shreya: 'Autocross prep' },
+    who: { charu: 'Rest day', shreya: 'Autocross prep' },
     events: [
       { start: '09:00', end: '12:00', title: 'Autocross prep', person: 'shreya' },
       { start: '20:00', end: '20:10', title: 'Start dosa batter', person: 'charu', prep: true },

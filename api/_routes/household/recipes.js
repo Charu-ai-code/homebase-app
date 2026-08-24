@@ -73,14 +73,14 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     const body = await readJson(req);
-    const { name, minutes, kcal, protein, method, servings, tags, ingredients, marinateHours, imageUrl } = body;
+    const { name, minutes, kcal, protein, method, servings, tags, ingredients, marinateHours, imageUrl, sourceUrl, sourceName } = body;
     if (!name) {
       json(res, 400, { error: 'Name required' });
       return;
     }
 
     const rows = await sql`
-      insert into recipes (name, minutes, marinate_hours, method, kcal, protein, servings, tags, image_url, created_by)
+      insert into recipes (name, minutes, marinate_hours, method, kcal, protein, servings, tags, image_url, source_name, source_url, created_by)
       values (
         ${name},
         ${minutes ?? null},
@@ -91,6 +91,8 @@ export default async function handler(req, res) {
         ${servings || null},
         ${tags || []},
         ${imageUrl || null},
+        ${sourceName || null},
+        ${sourceUrl || null},
         ${auth.person.id}
       )
       returning *
@@ -116,17 +118,18 @@ export default async function handler(req, res) {
 
   if (req.method === 'PATCH') {
     const body = await readJson(req);
-    const { id, name, minutes, kcal, protein, method, servings, tags, ingredients, marinateHours, imageUrl } = body;
+    const { id, name, minutes, kcal, protein, method, servings, tags, ingredients, marinateHours, imageUrl, sourceUrl, sourceName } = body;
     if (!id) {
       json(res, 400, { error: 'Recipe id required' });
       return;
     }
 
-    const existing = await sql`select id from recipes where id = ${id}`;
+    const existing = await sql`select * from recipes where id = ${id}`;
     if (!existing.length) {
       json(res, 404, { error: 'Recipe not found' });
       return;
     }
+    const prev = existing[0];
 
     await sql`
       update recipes set
@@ -139,6 +142,8 @@ export default async function handler(req, res) {
         servings = coalesce(${servings || null}, servings),
         tags = coalesce(${tags || null}, tags),
         image_url = coalesce(${imageUrl || null}, image_url),
+        source_name = ${sourceName !== undefined ? (sourceName || null) : prev.source_name},
+        source_url = ${sourceUrl !== undefined ? (sourceUrl || null) : prev.source_url},
         updated_at = now()
       where id = ${id}
     `;
@@ -160,6 +165,31 @@ export default async function handler(req, res) {
       select * from recipe_ingredients where recipe_id = ${id} order by sort_order
     `;
     json(res, 200, { recipe: shapeRecipe(rows[0], savedIngredients) });
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    const { id } = await readJson(req);
+    if (!id) {
+      json(res, 400, { error: 'Recipe id required' });
+      return;
+    }
+    const rows = await sql`select id, name from recipes where id = ${id}`;
+    if (!rows.length) {
+      json(res, 404, { error: 'Recipe not found' });
+      return;
+    }
+    const name = rows[0].name;
+    // Keep meal-plan history as ad-hoc name when a recipe is removed
+    await sql`
+      update meal_plan_slots
+      set adhoc_name = coalesce(nullif(adhoc_name, ''), ${name}),
+          recipe_id = null,
+          updated_at = now()
+      where recipe_id = ${id}
+    `;
+    await sql`delete from recipes where id = ${id}`;
+    json(res, 200, { ok: true });
     return;
   }
 

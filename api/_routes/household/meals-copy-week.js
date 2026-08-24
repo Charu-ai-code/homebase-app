@@ -2,6 +2,7 @@ import { json, readJson } from '../../_lib/response.js';
 import { requireAuth } from '../../_lib/auth.js';
 import { getDb } from '../../_lib/db.js';
 import { invalidateCache } from '../../_lib/ai.js';
+import { syncShoppingFromMeals } from '../../_lib/household.js';
 
 function toDateStr(d) {
   if (d == null) return '';
@@ -74,6 +75,8 @@ export default async function handler(req, res) {
     }
 
     await invalidateCache('mealplan');
+    await sql`delete from ai_insight_cache where cache_key = ${'shopping-sync:' + toWeekStart}`;
+    await syncShoppingFromMeals(sql, toWeekStart);
     json(res, 200, {
       ok: true,
       copied: toCopy.length,

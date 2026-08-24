@@ -22,10 +22,6 @@ export const SEED_DATA = {
     { key: 'charu', name: 'Charu', color: '#ec3013', calorieTarget: 1650, pin: process.env.CHARU_PIN || '1234' },
     { key: 'shreya', name: 'Shreya', color: '#201e1d', calorieTarget: 2000, pin: process.env.SHREYA_PIN || '5678' },
   ],
-  whoop: {
-    charu: { recovery: 42, sleepMinutes: 372, strain: 8.4 },
-    shreya: { recovery: 81, sleepMinutes: 468, strain: 14.2 },
-  },
   week: [
     {
       date: '2026-08-24', key: 'mon',

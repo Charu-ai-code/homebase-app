@@ -6,6 +6,7 @@
     "start": "vercel dev",
     "seed": "node scripts/seed.mjs",
     "import-meals": "node scripts/import-meal-json.mjs",
+    "push-vercel-env": "node scripts/push-vercel-env.mjs",
     "migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {

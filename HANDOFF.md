@@ -24,8 +24,9 @@ reuses these; don't introduce a second styling convention.
 3. **neon**
 4. **Final stack, now implemented:** vanilla HTML/CSS/JS frontend (no
   bundler, no build step) + **Neon** (serverless Postgres, free, no card,  auto-wakes on query — no manual resume like neon) + **Vercel**  serverless functions under `/api` (free, no card, works with a plain  static site) for all backend logic. Auth is a small custom PIN login  instead of magic-link email. Google Calendar is connected per-person via  OAuth. For the "make it smart" AI layer, **kimi** was chosen as the  primary provider (cheap/free-credit API, OpenAI-SDK-compatible), with  **Kimi** wired as an automatic F
-5. Recipes, Spotify, and live WHOOP were explicitly pushed out of this pass
-  to ship the core live/shared experience first (see §5).
+5. Recipes and Spotify were explicitly pushed out of this pass
+  to ship the core live/shared experience first (see §5). WHOOP has since
+  been removed from the product.
 
 
 
@@ -130,11 +131,11 @@ nothing in `index.html`/`app.js` references it anymore).
 
 - Spotify integration (now-playing dock / playback control) — not started;
 `external_accounts.provider` already allows `'spotify'` in the schema.
-- Live WHOOP data — `whoop_manual_entries` table exists but no manual-entry
-UI/endpoint has been built; WHOOP numbers are still whatever's in the
-mock/seed data.
 - Writing events back to Google Calendar (read-only sync only), multi-
 calendar selection (primary calendar only per person).
+
+WHOOP was removed from the product (UI, bootstrap, AI context, and seed).
+The `whoop_manual_entries` table may still exist in older DBs but is unused.
 
 **Done in a later pass (recipes + meal plan + weather + spotify):**
 

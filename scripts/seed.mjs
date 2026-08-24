@@ -73,19 +73,6 @@ async function seed() {
     }
   }
 
-  console.log('Seeding WHOOP entries...');
-  for (const [key, w] of Object.entries(SEED_DATA.whoop)) {
-    const personId = peopleByKey[key];
-    await sql`
-      insert into whoop_manual_entries (person_id, entry_date, recovery_pct, sleep_minutes, strain)
-      values (${personId}, ${'2026-08-27'}, ${w.recovery}, ${w.sleepMinutes}, ${w.strain})
-      on conflict (person_id, entry_date) do update
-      set recovery_pct = excluded.recovery_pct,
-          sleep_minutes = excluded.sleep_minutes,
-          strain = excluded.strain
-    `;
-  }
-
   const recipeIds = {};
   console.log('Seeding recipes + meals + events...');
   const seedDates = SEED_DATA.week.map((d) => d.date);

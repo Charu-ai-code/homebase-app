@@ -1,8 +1,27 @@
 import { google } from 'googleapis';
 import { getDb } from './db.js';
 
-function getOAuthClient() {
-  const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+function appBaseUrl(req) {
+  // Prefer the host the user is actually on (local vs production)
+  if (req?.headers) {
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const proto = req.headers['x-forwarded-proto']
+      || (String(host || '').includes('localhost') || String(host || '').startsWith('127.') ? 'http' : 'https');
+    if (host) {
+      let base = `${proto}://${host}`.replace(/\/$/, '');
+      base = base.replace(/:\/\/(localhost|\[::1\])/i, '://127.0.0.1');
+      return base;
+    }
+  }
+  const raw = process.env.APP_BASE_URL || 'http://127.0.0.1:3000';
+  return raw.replace(/:\/\/(localhost|\[::1\])/i, '://127.0.0.1').replace(/\/$/, '');
+}
+
+function getOAuthClient(req) {
+  const baseUrl = appBaseUrl(req);
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    throw new Error('GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET not set');
+  }
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -10,18 +29,26 @@ function getOAuthClient() {
   );
 }
 
-export function getGoogleAuthUrl(state) {
-  const oauth2 = getOAuthClient();
+export function getGoogleRedirectUri(req) {
+  return `${appBaseUrl(req)}/api/oauth/google/callback`;
+}
+
+export function getGoogleAuthUrl(state, req) {
+  const oauth2 = getOAuthClient(req);
   return oauth2.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
-    scope: ['https://www.googleapis.com/auth/calendar.readonly'],
+    scope: [
+      'https://www.googleapis.com/auth/calendar.readonly',
+      'openid',
+      'email',
+    ],
     state,
   });
 }
 
-export async function exchangeCode(code) {
-  const oauth2 = getOAuthClient();
+export async function exchangeCode(code, req) {
+  const oauth2 = getOAuthClient(req);
   const { tokens } = await oauth2.getToken(code);
   return tokens;
 }
@@ -35,7 +62,7 @@ export async function getAuthedClient(personId) {
   `;
   if (!rows.length) return null;
 
-  const oauth2 = getOAuthClient();
+  const oauth2 = getOAuthClient(); // refresh doesn't need request host
   oauth2.setCredentials({
     access_token: rows[0].access_token,
     refresh_token: rows[0].refresh_token,
@@ -81,7 +108,7 @@ export async function saveGoogleTokens(personId, tokens, email) {
       ${tokens.access_token},
       ${tokens.refresh_token || null},
       ${tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : null},
-      'calendar.readonly',
+      'calendar.readonly email openid',
       ${email || null}
     )
     on conflict (person_id, provider) do update
@@ -105,7 +132,7 @@ export async function getGoogleConnections() {
   for (const row of rows) {
     const key = row.name.toLowerCase();
     out[key] = {
-      connected: !!row.provider_account_email,
+      connected: !!row.provider_account_email || !!row.connected_at,
       email: row.provider_account_email || null,
       connectedAt: row.connected_at || null,
     };

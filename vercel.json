@@ -1,7 +1,10 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/router?path=$1" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/router"
+    }
   ],
   "functions": {
     "api/router.js": {

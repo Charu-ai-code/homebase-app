@@ -15,10 +15,11 @@ const SWAP_ALT = {
 
 let PEOPLE = {};
 let PROTEIN_FLOOR = 110;
-let WHOOP = {};
 let TODAY_INDEX = 0;
 let WEEK = [];
 let HOUSEHOLD_TASKS = [];
+let TASK_TAGS = ['cleaning', 'laundry', 'bills', 'car', 'errands'];
+let SHOP_CATEGORIES = ['Produce', 'Meat + dairy', 'Pantry', 'Frozen', 'Bakery', 'Spices', 'Other'];
 let SHOPPING_LIST = [];
 let ALREADY_AT_HOME = [];
 let ONION_BREAKDOWN = [];
@@ -46,8 +47,9 @@ const state = {
   showOtherWindows: false,
   mealMode: 'all',
   listGroupBy: 'aisle',
-  selectedItemId: 'onions',
-  skipMsgIndex: 0,
+  listFilter: 'open',
+  listSort: 'due',
+  selectedItemId: null,
   slotSwaps: new Set(),
   prepDone: false,
   selectedRecipeId: null,
@@ -80,20 +82,33 @@ function formatTime(hhmm) {
 }
 
 function getEffectiveSlot(day, slot) {
-  const empty = { name: '—', kcal: 0, protein: 0, recipeId: null };
+  const empty = { name: '—', kcal: 0, protein: 0, recipeId: null, status: 'planned' };
   const swapped = state.slotSwaps.has(day.key + ':' + slot);
-  if (swapped && SWAP_ALT[slot]) return { ...empty, ...SWAP_ALT[slot] };
+  if (swapped && SWAP_ALT[slot]) return { ...empty, ...SWAP_ALT[slot], status: day.meals?.[slot]?.status || 'planned' };
   return day.meals?.[slot] || empty;
 }
 
 function effectiveDayTotals(day) {
   let kcal = 0, protein = 0;
+  let plannedKcal = 0, plannedProtein = 0;
+  let eaten = 0, skipped = 0, pending = 0;
   SLOT_KEYS.forEach((s) => {
     const v = getEffectiveSlot(day, s);
-    kcal += Number(v?.kcal) || 0;
-    protein += Number(v?.protein) || 0;
+    if (!v?.name || v.name === '—') return;
+    const k = Number(v.kcal) || 0;
+    const p = Number(v.protein) || 0;
+    plannedKcal += k;
+    plannedProtein += p;
+    if (v.status === 'skipped') {
+      skipped += 1;
+      return;
+    }
+    if (v.status === 'eaten') eaten += 1;
+    else pending += 1;
+    kcal += k;
+    protein += p;
   });
-  return { kcal, protein };
+  return { kcal, protein, plannedKcal, plannedProtein, eaten, skipped, pending };
 }
 
 function shiftDateStr(yyyyMmDd, days) {
@@ -419,10 +434,15 @@ async function loadBootstrap() {
   const data = await HomeBaseAPI.bootstrap(params);
   PEOPLE = data.people;
   PROTEIN_FLOOR = data.proteinFloor;
-  WHOOP = data.whoop;
   TODAY_INDEX = data.todayIndex;
   WEEK = data.week;
   HOUSEHOLD_TASKS = data.householdTasks;
+  TASK_TAGS = Array.isArray(data.taskTags) && data.taskTags.length
+    ? data.taskTags
+    : ['cleaning', 'laundry', 'bills', 'car', 'errands'];
+  SHOP_CATEGORIES = Array.isArray(data.shopCategories) && data.shopCategories.length
+    ? data.shopCategories
+    : SHOP_CATEGORIES;
   SHOPPING_LIST = data.shoppingList;
   ALREADY_AT_HOME = data.alreadyAtHome || [];
   ONION_BREAKDOWN = data.onionBreakdown || [];
@@ -440,8 +460,6 @@ async function loadBootstrap() {
   if (data.slotLabels) SLOT_LABELS = { ...DEFAULT_SLOT_LABELS, ...data.slotLabels };
   session = data.session;
   state.calendarAiConfirmed = !!aiInsights.calendarConfirmed;
-  const firstItem = data.shoppingList?.flatMap((g) => g.items)[0];
-  if (firstItem) state.selectedItemId = firstItem.id;
 }
 
 async function loadMonthEvents(cursorYmd) {
@@ -588,7 +606,16 @@ async function initApp() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('oauth') === 'connected') {
     history.replaceState({}, '', '/');
-    toast('Google Calendar connected.');
+    toast('Google Calendar connected — tap SYNC NOW');
+  }
+  if (params.get('oauth') === 'error' || params.get('oauth') === 'failed' || params.get('oauth') === 'missing' || params.get('oauth') === 'invalid_state') {
+    history.replaceState({}, '', '/');
+    const reason = params.get('reason');
+    toast(
+      reason
+        ? `Google connect failed: ${reason}`
+        : 'Google connect failed — use http://127.0.0.1:3000 and add that callback URL in Google Cloud',
+    );
   }
   if (params.get('spotify') === 'connected') {
     history.replaceState({}, '', '/');
@@ -626,19 +653,17 @@ function renderDashboard() {
   }
   const day = WEEK[TODAY_INDEX] || WEEK[0];
   const prep = day.prep;
-  const other = Object.keys(PEOPLE).find((k) => k !== prep?.who);
 
   let banner;
   if (prep && !state.prepDone) {
     const assignee = PEOPLE[prep.who];
-    const otherP = PEOPLE[other];
     banner = `
       <div class="priority-banner">
         <div class="k" style="letter-spacing:.18em">NEEDS ATTENTION NOW</div>
         <div class="row" style="align-items:flex-end;justify-content:space-between;gap:28px;margin-top:14px">
           <div>
             <div class="title">${prep.when} — ${assignee.name.toUpperCase()}:<br>${prep.task.toUpperCase()} · ${prep.minutes} MIN</div>
-            <div class="desc">${escapeHtml(aiInsights.dashboard || `Tonight is ${day.dinner.name}${day.dinner.marinateHours ? `. It needs ${day.dinner.marinateHours} hours of marination` : ''}, ${assignee.name} is clear until 6:00, and ${otherP?.name || 'your partner'} is at ${WHOOP[otherP?.key]?.recovery ?? '—'}% recovery.`)}</div>
+            <div class="desc">${escapeHtml(aiInsights.dashboard || `Tonight is ${day.dinner.name}${day.dinner.marinateHours ? `. It needs ${day.dinner.marinateHours} hours of marination` : ''}, ${assignee.name} is clear until 6:00.`)}</div>
           </div>
           <div class="col" style="gap:8px;flex:none">
             <button class="btn" style="background:#fff;color:var(--color-accent);border-color:#fff;width:150px" data-action="startPrep">START NOW</button>
@@ -676,8 +701,25 @@ function renderDashboard() {
   const shoppingTotal = SHOPPING_LIST.flatMap((g) => g.items).length;
 
   const openTasks = HOUSEHOLD_TASKS.filter((t) => !t.done).slice(0, 4);
-  const lowest = (WHOOP.charu?.recovery ?? 100) <= (WHOOP.shreya?.recovery ?? 100) ? 'charu' : 'shreya';
-  const highest = lowest === 'charu' ? 'shreya' : 'charu';
+  const mealLog = effectiveDayTotals(day);
+  const mealRowsToday = SLOT_KEYS.map((slot) => {
+    const v = getEffectiveSlot(day, slot);
+    if (!v?.name || v.name === '—') return '';
+    const st = v.status || 'planned';
+    return `
+      <div class="meal-log-row ${st}">
+        <div class="meal-log-main">
+          <div class="k">${SLOT_LABELS[slot] || slot}</div>
+          <div class="h3">${escapeHtml(v.name)}</div>
+          <div class="m">${v.kcal || 0} kcal · ${v.protein || 0}g${st === 'skipped' ? ' · not counted' : ''}</div>
+        </div>
+        <div class="meal-log-actions">
+          <button type="button" class="tg ${st === 'eaten' ? 'tgr' : ''}" data-action="logMeal" data-date="${escapeHtml(day.dateStr)}" data-slot="${escapeHtml(slot)}" data-status="eaten">ATE</button>
+          <button type="button" class="tg ${st === 'skipped' ? 'tgr' : ''}" data-action="logMeal" data-date="${escapeHtml(day.dateStr)}" data-slot="${escapeHtml(slot)}" data-status="skipped">SKIP</button>
+          ${st !== 'planned' ? `<button type="button" class="tg" data-action="logMeal" data-date="${escapeHtml(day.dateStr)}" data-slot="${escapeHtml(slot)}" data-status="planned">UNDO</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
 
   document.getElementById('view').innerHTML = `
     <div class="screen">
@@ -692,32 +734,21 @@ function renderDashboard() {
       <div class="screen-body">
         <div class="col" style="flex:1;overflow:auto">
           ${banner}
+          <div class="col" style="padding:18px 28px 8px">
+            <div class="row" style="align-items:baseline;justify-content:space-between;gap:12px">
+              <div class="k">TODAY’S MEALS</div>
+              <div class="m">${mealLog.eaten} ate · ${mealLog.skipped} skipped · ${mealLog.kcal} kcal logged</div>
+            </div>
+            <div class="m" style="margin-top:6px">Tap <strong>ATE</strong> when you finish a meal, or <strong>SKIP</strong> if you didn’t have it (kcal won’t count).</div>
+            <div class="meal-log-list">${mealRowsToday || '<div class="m" style="margin-top:12px">No meals planned today — add them on the meal plan.</div>'}</div>
+          </div>
           <div class="col" style="padding:0 28px">${timelineRows}</div>
         </div>
         <div class="aside" style="overflow:auto">
-          <div class="rail-section">
-            <div class="k">WHOOP</div>
-            <div class="row" style="gap:18px;margin-top:12px">
-              <div class="whoop-col">
-                <div class="whoop-name" style="color:${PEOPLE.charu.color}">CHARU</div>
-                <div class="whoop-pct">${WHOOP.charu.recovery}%</div>
-                <div class="meter"><div style="width:${WHOOP.charu.recovery}%;background:${PEOPLE.charu.color}"></div></div>
-                <div class="m">Sleep ${WHOOP.charu.sleep} · Strain ${WHOOP.charu.strain}</div>
-              </div>
-              <div style="width:1px;background:var(--color-neutral-300)"></div>
-              <div class="whoop-col">
-                <div class="whoop-name">SHREYA</div>
-                <div class="whoop-pct">${WHOOP.shreya.recovery}%</div>
-                <div class="meter"><div style="width:${WHOOP.shreya.recovery}%;background:var(--color-text)"></div></div>
-                <div class="m">Sleep ${WHOOP.shreya.sleep} · Strain ${WHOOP.shreya.strain}</div>
-              </div>
-            </div>
-            <div class="p" style="margin-top:14px;padding-left:12px;border-left:2px solid var(--color-accent)">${PEOPLE[lowest].name} is low. Prep favours ${PEOPLE[highest].name} where possible; keep ${PEOPLE[lowest].name}'s day light.</div>
-          </div>
           <div class="rail-section" style="cursor:pointer" data-action="setTab" data-value="list">
             <div class="row" style="align-items:baseline;justify-content:space-between"><div class="k">SHOPPING LIST</div><div style="font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--color-accent-700)">OPEN →</div></div>
             <div class="row" style="align-items:baseline;gap:10px;margin-top:6px"><span style="font-size:32px;font-weight:900;letter-spacing:-.02em">${shoppingUnchecked}</span><span class="p">to buy · ${shoppingTotal - shoppingUnchecked} already checked off</span></div>
-            <div class="m" style="margin-top:6px">Built from this week's 7 dinners</div>
+            <div class="m" style="margin-top:6px">Built from this week's meal plan</div>
           </div>
           <div class="rail-section" style="flex:1">
             <div class="k">HOUSEHOLD</div>
@@ -726,7 +757,7 @@ function renderDashboard() {
                 <span class="chip ${t.person === 'charu' ? 'cha' : t.person === 'shreya' ? 'shr' : 'shd'}"></span>
                 <span class="h3" style="flex:1">${escapeHtml(t.title)}</span>
                 <span class="m" ${t.suggested ? 'style="color:var(--color-accent-700)"' : ''}>${t.suggested ? t.suggestedTime + '?' : (t.due || t.note || '')}</span>
-              </div>`).join('')}
+              </div>`).join('') || '<div class="m" style="margin-top:10px">No open tasks</div>'}
           </div>
         </div>
       </div>
@@ -743,16 +774,18 @@ function toMin(hhmm) { const [h, m] = hhmm.split(':').map(Number); return h * 60
 function renderGoogleBar() {
   const charu = googleConnections.charu || {};
   const shreya = googleConnections.shreya || {};
+  const who = (session?.name || '').toLowerCase();
   return `
     <div class="google-bar">
-      <span class="k">CALENDAR</span>
+      <span class="k">GOOGLE CALENDAR</span>
       ${charu.connected
         ? `<span class="connected">Charu · ${escapeHtml(charu.email || 'connected')}</span>`
-        : '<button class="btn" data-action="connectGoogle">CONNECT CHARU</button>'}
+        : `<button class="btn" data-action="connectGoogle" data-person="charu" ${who && who !== 'charu' ? 'title="Log in as Charu first"' : ''}>CONNECT CHARU</button>`}
       ${shreya.connected
         ? `<span class="connected">Shreya · ${escapeHtml(shreya.email || 'connected')}</span>`
-        : '<button class="btn" data-action="connectGoogle">CONNECT SHREYA</button>'}
+        : `<button class="btn" data-action="connectGoogle" data-person="shreya" ${who && who !== 'shreya' ? 'title="Log in as Shreya first"' : ''}>CONNECT SHREYA</button>`}
       <button class="btn" data-action="syncGoogle">SYNC NOW</button>
+      <button class="btn btnr" data-action="addCalEvent">+ EVENT</button>
       ${session ? `<span class="session-bar">${escapeHtml(session.name)} · <span data-action="logout" style="cursor:pointer;color:var(--color-accent)">LOG OUT</span></span>` : ''}
     </div>`;
 }
@@ -760,35 +793,92 @@ function renderGoogleBar() {
 function eventClass(ev) {
   const cls = ['cal-event'];
   if (ev.person === 'charu') cls.push('p-charu');
+  if (ev.person === 'shreya') cls.push('p-shreya');
   if (ev.person === 'shared') cls.push('p-shared');
   if (ev.highlight) cls.push('highlight');
   if (ev.prep) cls.push('prep');
   if (ev.suggested) cls.push('suggested');
+  if (ev.source === 'google') cls.push('from-google');
   return cls.join(' ');
 }
 
+function renderCalEventBlock(ev, { withTime = false, top, height } = {}) {
+  const style = top != null
+    ? `top:${top}%;height:${height}%`
+    : '';
+  const inner = `${withTime ? `<div class="m" style="opacity:.8;font-size:10px">${formatTime(ev.start)}${ev.end ? '–' + formatTime(ev.end) : ''}</div>` : ''}${escapeHtml(ev.title)}${ev.source === 'google' ? '<span class="cal-src">G</span>' : ''}`;
+  if (!ev.id) {
+    return `<div class="${eventClass(ev)}" style="${style}">${inner}</div>`;
+  }
+  return `<div class="${eventClass(ev)}" style="${style}" data-action="editCalEvent" data-id="${escapeHtml(ev.id)}" title="Tap to edit">${inner}</div>`;
+}
+
+function personOptions(selected = 'shared') {
+  return ['shared', 'charu', 'shreya'].map((p) =>
+    `<option value="${p}" ${selected === p ? 'selected' : ''}>${p === 'shared' ? 'Both / Shared' : p.charAt(0).toUpperCase() + p.slice(1)}</option>`
+  ).join('');
+}
+
+function tagOptions(selected = 'errands') {
+  const tags = TASK_TAGS.length ? TASK_TAGS : ['errands', 'cleaning', 'laundry', 'bills', 'car'];
+  const list = tags.includes(selected) ? tags : [...tags, selected].filter(Boolean);
+  return list.map((t) => {
+    const label = String(t).replace(/_/g, ' ');
+    return `<option value="${escapeHtml(t)}" ${t === selected ? 'selected' : ''}>${escapeHtml(label.charAt(0).toUpperCase() + label.slice(1))}</option>`;
+  }).join('');
+}
+
+function taskCategoryLabel(tag) {
+  return String(tag || 'errands').replace(/_/g, ' ').toUpperCase();
+}
+
+function findCalEvent(id) {
+  for (const day of WEEK) {
+    const ev = (day.events || []).find((e) => e.id === id);
+    if (ev) return { ...ev, date: day.dateStr };
+  }
+  const monthEv = (state.monthEvents || []).find((e) => e.id === id);
+  if (monthEv) return monthEv;
+  return null;
+}
+
 function renderCalAside() {
+  const filterTags = ['all', ...TASK_TAGS];
   const tasks = HOUSEHOLD_TASKS.filter((t) => state.taskFilter === 'all' || t.tag === state.taskFilter);
-  const charuLoad = HOUSEHOLD_TASKS.filter((t) => t.person === 'charu').length + HOUSEHOLD_TASKS.filter((t) => t.person === 'shared').length * 0.5;
-  const shreyaLoad = HOUSEHOLD_TASKS.filter((t) => t.person === 'shreya').length + HOUSEHOLD_TASKS.filter((t) => t.person === 'shared').length * 0.5;
+  const charuLoad = HOUSEHOLD_TASKS.filter((t) => t.person === 'charu' && !t.done).length + HOUSEHOLD_TASKS.filter((t) => t.person === 'shared' && !t.done).length * 0.5;
+  const shreyaLoad = HOUSEHOLD_TASKS.filter((t) => t.person === 'shreya' && !t.done).length + HOUSEHOLD_TASKS.filter((t) => t.person === 'shared' && !t.done).length * 0.5;
   const loadTotal = charuLoad + shreyaLoad || 1;
   return `
     <div class="aside">
       <div class="aside-section" style="flex:1;overflow:auto">
-        <div class="row" style="align-items:baseline;justify-content:space-between"><div class="k">HOUSEHOLD TASKS</div><span class="tg tgr" style="font-size:10px" data-action="addTask">+ ADD</span></div>
+        <div class="row" style="align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div class="k">HOUSEHOLD TASKS</div>
+          <div class="row" style="gap:6px">
+            <span class="tg" style="font-size:10px" data-action="addTaskCategory">+ CATEGORY</span>
+            <span class="tg tgr" style="font-size:10px" data-action="addTask">+ ADD</span>
+          </div>
+        </div>
+        <div class="m" style="margin-top:6px">Check to complete · ✎ edit · × delete</div>
         <div class="chip-filters">
-          ${['all', 'cleaning', 'laundry', 'bills', 'car', 'errands'].map((f) => `
-            <span class="tg ${state.taskFilter === f ? 'tgr' : ''}" data-action="setTaskFilter" data-value="${f}">${f === 'all' ? 'ALL ' + HOUSEHOLD_TASKS.length : f.toUpperCase()}</span>
+          ${filterTags.map((f) => `
+            <span class="tg ${state.taskFilter === f ? 'tgr' : ''}" data-action="setTaskFilter" data-value="${escapeHtml(f)}">${f === 'all' ? 'ALL ' + HOUSEHOLD_TASKS.length : taskCategoryLabel(f)}</span>
           `).join('')}
         </div>
         <div style="margin-top:14px">
           ${tasks.map((t) => `
-            <div class="household-row ${t.done ? 'done' : ''}" data-action="toggleTask" data-id="${t.id}" style="${t.suggested ? 'background:var(--color-accent-100)' : ''}">
-              <span class="check ${t.done ? 'checked' : ''} ${t.suggested ? 'dashed' : ''}">${t.done ? '✓' : ''}</span>
-              <span class="chip ${t.person === 'charu' ? 'cha' : t.person === 'shreya' ? 'shr' : 'shd'}"></span>
-              <span class="h3" style="flex:1">${escapeHtml(t.title)}</span>
-              <span class="m" ${t.suggested ? 'style="color:var(--color-accent-700)"' : ''}>${t.suggested ? t.suggestedTime + '?' : (t.due ? t.due : (t.note || ''))}</span>
-            </div>`).join('')}
+            <div class="household-row ${t.done ? 'done' : ''}" style="${t.suggested ? 'background:var(--color-accent-100)' : ''}">
+              <span class="check ${t.done ? 'checked' : ''} ${t.suggested ? 'dashed' : ''}" data-action="toggleTask" data-id="${t.id}">${t.done ? '✓' : ''}</span>
+              <span class="chip ${t.person === 'charu' ? 'cha' : t.person === 'shreya' ? 'shr' : 'shd'}" title="${escapeHtml(t.person || 'shared')}"></span>
+              <button type="button" class="task-title-btn" data-action="editTask" data-id="${t.id}">
+                <span class="h3">${escapeHtml(t.title)}</span>
+                <span class="task-meta">
+                  <span class="task-tag">${escapeHtml(taskCategoryLabel(t.tag))}</span>
+                  <span class="m">${t.person === 'shared' ? 'BOTH' : (t.person || '').toUpperCase()}</span>
+                </span>
+              </button>
+              <button type="button" class="shop-icon-btn" data-action="editTask" data-id="${t.id}" title="Edit">✎</button>
+              <button type="button" class="shop-icon-btn danger" data-action="deleteTask" data-id="${t.id}" title="Delete">×</button>
+            </div>`).join('') || '<div class="m" style="padding:12px 0">No tasks — tap + ADD</div>'}
         </div>
       </div>
       <div class="aside-section">
@@ -829,7 +919,8 @@ function renderCalChrome(title, mainHtml) {
           <span class="row" style="align-items:center;gap:7px"><span class="chip cha"></span>CHARU</span>
           <span class="row" style="align-items:center;gap:7px"><span class="chip shr"></span>SHREYA</span>
           <span class="row" style="align-items:center;gap:7px;color:var(--color-neutral-600)"><span class="chip shd"></span>SHARED</span>
-          <span class="tg tgr" data-action="addTask">+ NEW</span>
+          <span class="tg tgr" data-action="addCalEvent">+ EVENT</span>
+          <span class="tg" data-action="addTask">+ TASK</span>
         </div>
       </div>
       ${state.calendarAiConfirmed ? `
@@ -839,7 +930,7 @@ function renderCalChrome(title, mainHtml) {
           <div class="row" style="gap:14px;align-items:flex-start">
             <span class="tg tgr" style="margin-top:2px">AI</span>
             <div>
-              <div class="p" style="font-size:15px;max-width:640px">${escapeHtml(aiInsights.calendar || 'Loading scheduling insight…')}</div>
+              <div class="p" style="font-size:15px;max-width:640px">${escapeHtml(aiInsights.calendar || 'Ask AI for a scheduling suggestion, or add events with + EVENT.')}</div>
               ${state.showOtherWindows ? '<div class="m" style="margin-top:8px">Other windows: Sunday 1–3 PM (Shreya only), Wednesday evening after 8 PM (both, low energy).</div>' : ''}
             </div>
           </div>
@@ -875,8 +966,8 @@ function renderCalDayTrack(events, tall = false) {
               const end = ev.end ? toMin(ev.end) : start + 20;
               const top = Math.max(0, (start - DAY_START_MIN) / DAY_SPAN * 100);
               const height = Math.max(3, (end - start) / DAY_SPAN * 100);
-              return `<div class="${eventClass(ev)}" style="top:${top}%;height:${height}%"><div class="m" style="opacity:.8;font-size:10px">${formatTime(ev.start)}${ev.end ? '–' + formatTime(ev.end) : ''}</div>${escapeHtml(ev.title)}</div>`;
-            }).join('') || '<div class="m" style="padding:16px">No events</div>'}
+              return renderCalEventBlock(ev, { withTime: true, top, height });
+            }).join('') || '<div class="m" style="padding:16px">No events — tap + EVENT</div>'}
           </div>
         </div>
       </div>
@@ -897,13 +988,13 @@ function renderCalendarWeekBody() {
         ${WEEK.map((day, idx) => `
           <div class="cal-day-col ${idx === TODAY_INDEX ? 'today' : ''}">
             <div class="cal-day-head" data-action="openCalDay" data-key="${day.key}" data-date="${day.dateStr || ''}">${day.label} ${day.date}</div>
-            <div class="cal-track" data-action="openCalDay" data-key="${day.key}" data-date="${day.dateStr || ''}">
+            <div class="cal-track">
               ${day.events.map((ev) => {
                 const start = toMin(ev.start);
                 const end = ev.end ? toMin(ev.end) : start + 20;
                 const top = Math.max(0, (start - DAY_START_MIN) / DAY_SPAN * 100);
                 const height = Math.max(3, (end - start) / DAY_SPAN * 100);
-                return `<div class="${eventClass(ev)}" style="top:${top}%;height:${height}%">${escapeHtml(ev.title)}</div>`;
+                return renderCalEventBlock(ev, { top, height });
               }).join('')}
             </div>
           </div>`).join('')}
@@ -985,6 +1076,26 @@ function renderCalendar() {
 
 // ---------------------------------------------------------------- meal plan week grid
 
+function weekSlotLabel(key) {
+  if (key === 'who') return "WHO'S BUSY";
+  const short = {
+    drink: 'DRINK',
+    breakfast: 'BREAKFAST',
+    shake: 'SHAKE',
+    lunch: 'LUNCH',
+    snack: 'SNACK',
+    dinner: 'DINNER',
+    dessert: 'DESSERT',
+    lunch_charu: 'LUNCH · C',
+    snack_am: 'SNACK AM',
+    snack_pm: 'SNACK PM',
+    before_sleep: 'NIGHT',
+  };
+  if (short[key]) return short[key];
+  const raw = SLOT_LABELS[key] || key;
+  return String(raw).replace(/_/g, ' ').toUpperCase();
+}
+
 function renderWeekGrid() {
   const isAll = state.mealMode === 'all';
   const rows = isAll ? ['who', ...SLOT_KEYS] : ['dinner'];
@@ -1015,7 +1126,7 @@ function renderWeekGrid() {
         <div class="plan-stat"><div class="k">→ PLAN</div><div class="n">${isAll ? filledSlots || WEEK.length * 6 : dinnerFilled}</div><div class="m">${isAll ? 'meal slots filled' : 'dinners chosen'}</div></div>
         <div class="plan-stat"><div class="k">→ DAILY AVG</div><div class="n">${Math.round(avg) || '—'}</div><div class="m">kcal · ${Math.round(avgProtein)}g protein</div></div>
         <div class="plan-stat accent"><div class="k" style="color:#ffe0d9">→ TARGETS</div><div class="n">${PEOPLE.charu?.calorieTarget || '—'} / ${PEOPLE.shreya?.calorieTarget || '—'}</div><div class="m" style="color:#ffe0d9">Charu / Shreya kcal</div></div>
-        <div class="plan-stat"><div class="k">→ BUY</div><div class="n">${shoppingUnchecked}</div><div class="m">items, to buy</div></div>
+        <div class="plan-stat" data-action="setTab" data-value="list" style="cursor:pointer"><div class="k">→ BUY</div><div class="n">${shoppingUnchecked}</div><div class="m">items, to buy</div></div>
         <div class="plan-stat dark"><div class="k" style="color:#bab6b6">→ PREP</div><div class="n">${prepCount}</div><div class="m" style="color:#bab6b6">tasks in calendar</div></div>
       </div>
       <div class="row" style="flex:none;padding:12px 26px;border-bottom:2px solid var(--color-text);align-items:center;gap:14px">
@@ -1029,9 +1140,9 @@ function renderWeekGrid() {
       <div class="week-grid">
         <div class="week-labels">
           <div class="head-spacer"></div>
-          ${rows.map((r) => `<div class="slot-label">${r === 'who' ? "WHO'S BUSY" : SLOT_LABELS[r] || r.toUpperCase()}</div>`).join('')}
+          ${rows.map((r) => `<div class="slot-label" title="${escapeHtml(SLOT_LABELS[r] || r)}">${escapeHtml(weekSlotLabel(r))}</div>`).join('')}
           ${isAll ? '<div class="total-label">DAY TOTAL</div>' : ''}
-          <div class="total-label" style="background:transparent;color:var(--color-neutral-600)">PREP</div>
+          <div class="prep-label">PREP</div>
         </div>
         <div class="week-days">
           ${WEEK.map((day) => {
@@ -1049,7 +1160,8 @@ function renderWeekGrid() {
                   return `<div class="slot-cell" style="flex:2" data-action="openDayDetail" data-key="${day.key}"><div class="name" style="font-size:15px">${escapeHtml(day.dinner.name)}</div><div class="m" style="margin-top:3px">${day.dinner.minutes || '—'} min${day.dinner.marinateHours ? ` + ${day.dinner.marinateHours} hr marinate` : ''} · ${escapeHtml(String(day.dinner.method || ''))}</div></div>`;
                 }
                 const slot = getEffectiveSlot(day, r);
-                return `<div class="slot-cell"><div class="name">${escapeHtml(slot.name)}</div><div class="kcal">${slot.kcal} kcal</div></div>`;
+                const st = slot.status || 'planned';
+                return `<div class="slot-cell ${st === 'skipped' ? 'is-skipped' : ''}" data-action="openDayDetail" data-key="${day.key}"><div class="name">${escapeHtml(slot.name)}</div><div class="kcal">${st === 'skipped' ? 'skipped' : `${slot.kcal} kcal`}</div></div>`;
               }).join('')}
               ${isAll ? `
                 <div class="day-total">
@@ -1060,7 +1172,7 @@ function renderWeekGrid() {
                   </div>
                   <div class="m" style="color:#bab6b6;margin-top:2px">${totals.protein}g protein</div>
                 </div>` : ''}
-              <div class="slot-cell" style="flex:none;height:64px">
+              <div class="slot-cell prep-cell">
                 ${day.prep ? `<div style="padding:5px 7px;font-size:10px;font-weight:700;line-height:1.3;background:${day.prep.urgent ? 'var(--color-accent)' : 'var(--color-surface)'};color:${day.prep.urgent ? '#fff' : 'var(--color-text)'};border-left:3px solid var(--color-accent)">${day.prep.when}<br>${personName(day.prep.who)}: ${escapeHtml(day.prep.task)} · ${day.prep.minutes} min</div>` : '<div class="m" style="font-size:11px">No prep needed</div>'}
               </div>
             </div>`;
@@ -1096,20 +1208,30 @@ function renderDayDetail() {
   let running = 0;
   const rows = SLOT_KEYS.map((slot) => {
     const v = getEffectiveSlot(day, slot);
-    running += v.kcal;
+    const st = v.status || 'planned';
+    const countKcal = st === 'skipped' ? 0 : (Number(v.kcal) || 0);
+    running += countKcal;
     const barW = Math.min(100, Math.round((running / target) * 100));
     const empty = !v.name || v.name === '—';
     return `
-      <div class="slot-row">
+      <div class="slot-row ${st}">
         <div class="top">
           <div class="row" style="align-items:baseline;gap:14px;flex-wrap:wrap">
             <span class="k" style="width:120px;flex:none">${SLOT_LABELS[slot]}</span>
-            <span class="h3">${escapeHtml(v.name)}</span>
+            <span class="h3 ${st === 'skipped' ? 'slot-skipped' : ''}">${escapeHtml(v.name)}</span>
+            ${st === 'eaten' ? '<span class="tg tgr" style="font-size:9px;padding:3px 8px">ATE</span>' : ''}
+            ${st === 'skipped' ? '<span class="tg" style="font-size:9px;padding:3px 8px">SKIPPED</span>' : ''}
             <span class="tg tgr" style="font-size:9px;padding:3px 8px" data-action="setDaySlot" data-slot="${slot}">${empty ? '+ ADD' : 'CHANGE'}</span>
             ${SWAPPABLE.has(slot) ? `<span class="tg" style="font-size:9px;padding:3px 6px" data-action="swapSlot" data-slot="${slot}">SWAP</span>` : ''}
           </div>
-          <div class="row" style="align-items:baseline;gap:16px"><span class="m">${v.protein}g protein</span><span class="h3" style="width:70px;text-align:right">${v.kcal}</span></div>
+          <div class="row" style="align-items:baseline;gap:16px"><span class="m">${st === 'skipped' ? '0' : v.protein}g protein</span><span class="h3" style="width:70px;text-align:right">${st === 'skipped' ? 0 : v.kcal}</span></div>
         </div>
+        ${!empty ? `
+          <div class="row" style="gap:6px;margin:8px 0 4px;flex-wrap:wrap">
+            <span class="tg ${st === 'eaten' ? 'tgr' : ''}" data-action="logMeal" data-date="${escapeHtml(day.dateStr)}" data-slot="${escapeHtml(slot)}" data-status="eaten">ATE</span>
+            <span class="tg ${st === 'skipped' ? 'tgr' : ''}" data-action="logMeal" data-date="${escapeHtml(day.dateStr)}" data-slot="${escapeHtml(slot)}" data-status="skipped">SKIP</span>
+            ${st !== 'planned' ? `<span class="tg" data-action="logMeal" data-date="${escapeHtml(day.dateStr)}" data-slot="${escapeHtml(slot)}" data-status="planned">UNDO</span>` : ''}
+          </div>` : ''}
         <div class="slot-progress-row">
           <div class="slot-progress"><div style="width:${barW}%"></div></div>
           <span class="m" style="width:130px;text-align:right">${running} / ${target} kcal</span>
@@ -1160,6 +1282,27 @@ function renderDayDetail() {
 
 // ---------------------------------------------------------------- recipes
 
+function inferSourceName(url) {
+  if (!url) return null;
+  try {
+    const h = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+    if (h.includes('youtube') || h === 'youtu.be') return 'YouTube';
+    if (h.includes('instagram')) return 'Instagram';
+    if (h.includes('tiktok')) return 'TikTok';
+    if (h.includes('facebook')) return 'Facebook';
+    return h;
+  } catch {
+    return 'Link';
+  }
+}
+
+function recipeRefLink(r) {
+  const url = r?.sourceUrl || r?.source_url;
+  if (!url) return '';
+  const label = r?.sourceName || r?.source_name || inferSourceName(url);
+  return `<a class="recipe-ref-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} ↗</a>`;
+}
+
 function parseRecipeFormValues(values) {
   const ingredients = String(values.ingredients || '').split('\n').map((line) => {
     const [name, qty, aisle] = line.split('|').map((s) => s.trim());
@@ -1168,6 +1311,9 @@ function parseRecipeFormValues(values) {
   const method = String(values.method || '').split('\n').map((s) => s.trim()).filter(Boolean);
   const imageUrl = String(values.imageUrl || '').trim()
     || `https://image.pollinations.ai/prompt/${encodeURIComponent((values.name || 'food') + ', plated food photography, appetizing')}?width=800&height=1000&nologo=true`;
+  const sourceUrl = String(values.sourceUrl || '').trim() || null;
+  const sourceName = String(values.sourceName || '').trim()
+    || (sourceUrl ? inferSourceName(sourceUrl) : null);
   return {
     name: values.name,
     minutes: Number(values.minutes) || null,
@@ -1178,6 +1324,8 @@ function parseRecipeFormValues(values) {
     method: method.length ? method : ['Prep', 'Cook', 'Serve'],
     ingredients,
     imageUrl,
+    sourceUrl,
+    sourceName,
   };
 }
 
@@ -1215,8 +1363,38 @@ Rules:
 
 Convert this recipe:`;
 
+function normalizeRecipeImageUrl(url) {
+  const raw = String(url || '').trim();
+  if (!raw) return '';
+  // Google Images result page / search URLs are not direct image files
+  if (/google\.[^/]+\/(imgres|search|url\?)/i.test(raw)) return '';
+  // Prefer direct lh3 / googleusercontent image hosts as-is
+  return raw;
+}
+
 function recipeCover(r) {
-  return r.imageUrl || `https://image.pollinations.ai/prompt/${encodeURIComponent((r.name || 'food') + ', plated food photography, appetizing')}?width=800&height=1000&nologo=true`;
+  const direct = normalizeRecipeImageUrl(r?.imageUrl);
+  if (direct) return direct;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent((r?.name || 'food') + ', plated food photography, appetizing')}?width=800&height=1000&nologo=true`;
+}
+
+function recipeImgTag(r, className = '') {
+  const src = recipeCover(r);
+  const cls = className ? ` class="${className}"` : '';
+  return `<img${cls} src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fallback-name="${escapeHtml(r?.name || 'food')}">`;
+}
+
+function bindRecipeImageFallbacks(root = document) {
+  root.querySelectorAll('img.recipe-card-img, .recipe-hero img').forEach((img) => {
+    if (img.dataset.boundFallback) return;
+    img.dataset.boundFallback = '1';
+    img.addEventListener('error', () => {
+      img.classList.add('is-broken');
+      const name = img.dataset.fallbackName || 'food';
+      const fallback = `https://image.pollinations.ai/prompt/${encodeURIComponent(name + ', plated food photography, appetizing')}?width=800&height=1000&nologo=true&seed=1`;
+      if (img.src !== fallback) img.src = fallback;
+    });
+  });
 }
 
 function renderRecipeGrid() {
@@ -1252,15 +1430,19 @@ function renderRecipeGrid() {
       ` : `
         <div class="recipe-grid">
           ${list.map((r) => `
-            <div class="recipe-card" data-action="openRecipe" data-id="${r.id}">
-              <img class="recipe-card-img" src="${escapeHtml(recipeCover(r))}" alt="" loading="lazy">
-              <div class="recipe-card-body">
-                <div class="k">${(r.tags || []).slice(0, 2).map((t) => t.toUpperCase()).join(' · ') || 'RECIPE'}</div>
-                <div class="h3" style="margin-top:6px">${escapeHtml(r.name)}</div>
-                <div class="row" style="gap:12px;margin-top:10px;flex-wrap:wrap">
-                  <span class="m">${r.kcal != null ? r.kcal + ' kcal' : '— kcal'}</span>
-                  <span class="m">${r.protein != null ? r.protein + 'g protein' : ''}</span>
-                  <span class="m">${r.minutes != null ? r.minutes + ' min' : ''}</span>
+            <div class="recipe-card">
+              <button type="button" class="recipe-card-del" data-action="deleteRecipe" data-id="${r.id}" title="Delete recipe">×</button>
+              <div data-action="openRecipe" data-id="${r.id}">
+                ${recipeImgTag(r, 'recipe-card-img')}
+                <div class="recipe-card-body">
+                  <div class="k">${(r.tags || []).slice(0, 2).map((t) => t.toUpperCase()).join(' · ') || 'RECIPE'}</div>
+                  <div class="h3" style="margin-top:6px">${escapeHtml(r.name)}</div>
+                  <div class="row" style="gap:12px;margin-top:10px;flex-wrap:wrap">
+                    <span class="m">${r.kcal != null ? r.kcal + ' kcal' : '— kcal'}</span>
+                    <span class="m">${r.protein != null ? r.protein + 'g protein' : ''}</span>
+                    <span class="m">${r.minutes != null ? r.minutes + ' min' : ''}</span>
+                  </div>
+                  ${r.sourceUrl ? `<div style="margin-top:10px">${recipeRefLink(r)}</div>` : ''}
                 </div>
               </div>
             </div>
@@ -1268,6 +1450,7 @@ function renderRecipeGrid() {
         </div>
       `}
     </div>`;
+  bindRecipeImageFallbacks();
 }
 
 function renderRecipeDetail() {
@@ -1291,12 +1474,13 @@ function renderRecipeDetail() {
         <div class="row" style="flex:none;align-items:center;gap:8px;padding-right:26px">
           <span class="tg" data-action="aiFillRecipe" data-id="${full.id}">AI CALORIES</span>
           <span class="tg" data-action="editRecipe" data-id="${full.id}">EDIT</span>
+          <span class="tg" data-action="deleteRecipe" data-id="${full.id}">DELETE</span>
         </div>
       </div>
       <div class="screen-body" style="overflow:auto">
         <div class="col" style="flex:1;padding:0;max-width:520px">
           <div class="recipe-hero">
-            <img src="${escapeHtml(recipeCover(full))}" alt="">
+            ${recipeImgTag(full, '')}
             <span class="tg tgr recipe-hero-edit" data-action="editRecipePhoto" data-id="${full.id}">EDIT PHOTO</span>
           </div>
           <div style="padding:22px 28px">
@@ -1306,6 +1490,11 @@ function renderRecipeDetail() {
               <div><div class="k">TIME</div><div class="h3" style="margin-top:4px">${full.minutes || '—'} min</div></div>
               <div><div class="k">SERVINGS</div><div class="h3" style="margin-top:4px">${escapeHtml(full.servings || '—')}</div></div>
             </div>
+            ${full.sourceUrl ? `
+              <div style="margin-bottom:20px">
+                <div class="k">REFERENCE</div>
+                <div style="margin-top:8px">${recipeRefLink(full)}</div>
+              </div>` : ''}
             <div class="k">INGREDIENTS</div>
             <div class="col" style="margin-top:12px;margin-bottom:22px">
               ${ingredients.length ? ingredients.map((i) => `
@@ -1344,87 +1533,350 @@ function renderRecipeDetail() {
         </div>
       </div>
     </div>`;
+  bindRecipeImageFallbacks();
 }
 
 // ---------------------------------------------------------------- shopping list
 
+const SHOP_STORES = ['Costco', 'Trader Joe\'s', 'Whole Foods', 'Target', 'Walmart', 'Indian grocery', 'Farmers market', 'Safeway', 'Kroger'];
+
+function shopCategoryOptions(selected) {
+  const extras = SHOP_CATEGORIES.includes(selected) || !selected
+    ? []
+    : [selected];
+  const list = [...new Set([...SHOP_CATEGORIES, ...extras])];
+  return list.map((c) =>
+    `<option value="${escapeHtml(c)}" ${c === selected ? 'selected' : ''}>${escapeHtml(c)}</option>`
+  ).join('');
+}
+
+function shopCategoryField(selected) {
+  return `
+    <label><span class="k">CATEGORY</span>
+      <select name="aisle">${shopCategoryOptions(selected || 'Other')}</select>
+    </label>
+    <label><span class="k">OR NEW CATEGORY</span>
+      <input name="newAisle" placeholder="e.g. Indian store, Household">
+    </label>`;
+}
+
+function resolveShopCategory(values, fallback = 'Other') {
+  return String(values.newAisle || '').trim() || values.aisle || fallback;
+}
+
+function applyShopCategories(categories) {
+  if (Array.isArray(categories) && categories.length) SHOP_CATEGORIES = categories;
+}
+
+function shopStoreField(name, value) {
+  return `
+    <label><span class="k">STORE</span>
+      <input name="${name}" list="shop-stores-datalist" value="${escapeHtml(value || '')}" placeholder="e.g. Costco, Indian grocery">
+    </label>
+    <datalist id="shop-stores-datalist">
+      ${SHOP_STORES.map((s) => `<option value="${escapeHtml(s)}">`).join('')}
+    </datalist>`;
+}
+
+function shopScheduleFields(item = {}) {
+  const needBy = item.needBy || '';
+  const priority = item.priority || 'normal';
+  const autoHint = item.source === 'meal_plan'
+    ? `<div class="m" style="margin-top:8px">${item.needByOverride
+      ? 'Manual need-by date — clear the date and save to revert to meal plan.'
+      : 'Need-by is auto-set to the first day this ingredient is used on the meal plan.'}</div>`
+    : '';
+  return `
+    <label><span class="k">NEED BY</span>
+      <input name="needBy" type="date" value="${escapeHtml(needBy)}">
+    </label>
+    <label><span class="k">PRIORITY</span>
+      <select name="priority">
+        <option value="high" ${priority === 'high' ? 'selected' : ''}>High</option>
+        <option value="normal" ${priority === 'normal' ? 'selected' : ''}>Normal</option>
+        <option value="low" ${priority === 'low' ? 'selected' : ''}>Low</option>
+      </select>
+    </label>
+    ${autoHint}`;
+}
+
+function formatNeedBy(dateStr) {
+  if (!dateStr) return '';
+  const ds = dateStr.slice(0, 10);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const todayStr = today.toISOString().slice(0, 10);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+  if (ds === todayStr) return 'Today';
+  if (ds === tomorrowStr) return 'Tomorrow';
+  const d = new Date(`${ds}T12:00:00`);
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function isDueSoon(needBy) {
+  if (!needBy) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const need = new Date(`${needBy.slice(0, 10)}T12:00:00`);
+  const diff = Math.round((need - today) / 86400000);
+  return diff >= 0 && diff <= 2;
+}
+
+function sortShoppingItems(items) {
+  const sorted = [...items];
+  if (state.listSort === 'name') {
+    sorted.sort((a, b) => a.name.localeCompare(b.name));
+    return sorted;
+  }
+  const priRank = { high: 0, normal: 1, low: 2 };
+  sorted.sort((a, b) => {
+    const pa = priRank[a.priority] ?? 1;
+    const pb = priRank[b.priority] ?? 1;
+    if (pa !== pb) return pa - pb;
+    const da = a.needBy || '9999-99-99';
+    const db = b.needBy || '9999-99-99';
+    if (da !== db) return da.localeCompare(db);
+    return a.name.localeCompare(b.name);
+  });
+  return sorted;
+}
+
+function shopPriorityPill(priority) {
+  if (!priority || priority === 'normal') return '';
+  const label = priority === 'high' ? 'HIGH' : 'LOW';
+  return `<span class="shop-priority-pill ${priority}">${label}</span>`;
+}
+
+function findShoppingItem(id) {
+  return SHOPPING_LIST.flatMap((g) => g.items).find((i) => i.id === id) || null;
+}
+
+function removeShoppingItemLocal(id) {
+  for (const g of SHOPPING_LIST) {
+    const idx = g.items.findIndex((i) => i.id === id);
+    if (idx >= 0) {
+      g.items.splice(idx, 1);
+      break;
+    }
+  }
+  SHOPPING_LIST = SHOPPING_LIST.filter((g) => g.items.length);
+}
+
+function upsertShoppingItemLocal(item) {
+  removeShoppingItemLocal(item.id);
+  let group = SHOPPING_LIST.find((g) => g.aisle === item.aisle);
+  if (!group) {
+    group = { aisle: item.aisle, items: [] };
+    SHOPPING_LIST.push(group);
+    SHOPPING_LIST.sort((a, b) => a.aisle.localeCompare(b.aisle));
+  }
+  group.items.push(item);
+  group.items = sortShoppingItems(group.items);
+}
+
 function renderShoppingList() {
   const allItems = SHOPPING_LIST.flatMap((g) => g.items);
-  const uncheckedCount = allItems.filter((i) => !i.checked).length;
-  const selected = allItems.find((i) => i.id === state.selectedItemId) || allItems[0];
+  const openItems = allItems.filter((i) => !i.checked);
+  const doneItems = allItems.filter((i) => i.checked);
+  const filter = state.listFilter || 'open';
+  let visible = filter === 'done' ? doneItems : filter === 'all' ? allItems : openItems;
+  if (filter === 'urgent') {
+    visible = openItems.filter((i) => i.priority === 'high' || isDueSoon(i.needBy));
+  }
 
-  let groupsHtml;
-  if (state.listGroupBy === 'aisle') {
-    groupsHtml = SHOPPING_LIST.map((g) => `
-      <div class="aisle-head"><div class="k">${g.aisle.toUpperCase()} · ${g.items.length}</div></div>
-      ${g.items.map((it) => renderShoppingRow(it)).join('')}
-    `).join('');
+  if (state.selectedItemId && !allItems.some((i) => i.id === state.selectedItemId)) {
+    state.selectedItemId = null;
+  }
+  const selected = allItems.find((i) => i.id === state.selectedItemId) || null;
+  const selectedRecipes = selected ? (ITEM_RECIPES[selected.id] || []) : [];
+
+  let groupsHtml = '';
+  if (!visible.length) {
+    groupsHtml = `
+      <div class="shop-empty">
+        <div class="h2">${filter === 'urgent' ? 'Nothing urgent this week'
+          : filter === 'done' ? 'Nothing checked off yet'
+          : filter === 'all' ? 'List is empty' : 'All caught up'}</div>
+        <div class="p" style="margin-top:10px">${filter === 'urgent'
+          ? 'Items marked high priority or due in the next 2 days show here.'
+          : filter === 'open' && doneItems.length
+          ? `${doneItems.length} bought — switch to Done, or add something you still need.`
+          : 'Tap + to add milk, produce, or anything else.'}</div>
+        <button type="button" class="btn btnr shop-empty-add" data-action="addItem">+ ADD ITEM</button>
+      </div>`;
+  } else if (state.listGroupBy === 'aisle') {
+    const byAisle = {};
+    visible.forEach((it) => {
+      const aisle = it.aisle || 'Other';
+      (byAisle[aisle] = byAisle[aisle] || []).push(it);
+    });
+    const order = [...SHOP_CATEGORIES, ...Object.keys(byAisle).filter((a) => !SHOP_CATEGORIES.includes(a))];
+    groupsHtml = order.filter((a) => byAisle[a]?.length).map((aisle) => {
+      const items = sortShoppingItems(byAisle[aisle]);
+      const left = items.filter((i) => !i.checked).length;
+      return `
+        <section class="shop-group">
+          <div class="shop-group-head">
+            <div class="k">${escapeHtml(aisle.toUpperCase())}</div>
+            <div class="m">${left ? `${left} to buy` : 'done'}${items.length !== left ? ` · ${items.length}` : ''}</div>
+          </div>
+          ${items.map((it) => renderShoppingRow(it)).join('')}
+        </section>`;
+    }).join('');
+  } else if (state.listGroupBy === 'store') {
+    const byStore = {};
+    visible.forEach((it) => {
+      const store = (it.store || '').trim() || 'Any store';
+      (byStore[store] = byStore[store] || []).push(it);
+    });
+    const order = [...SHOP_STORES, 'Any store', ...Object.keys(byStore).filter((s) => !SHOP_STORES.includes(s) && s !== 'Any store')];
+    groupsHtml = order.filter((s) => byStore[s]?.length).map((store) => {
+      const items = sortShoppingItems(byStore[store]);
+      const left = items.filter((i) => !i.checked).length;
+      return `
+        <section class="shop-group">
+          <div class="shop-group-head">
+            <div class="k">${escapeHtml(store.toUpperCase())}</div>
+            <div class="m">${left ? `${left} to buy` : 'done'}${items.length !== left ? ` · ${items.length}` : ''}</div>
+          </div>
+          ${items.map((it) => renderShoppingRow(it)).join('')}
+        </section>`;
+    }).join('');
   } else {
     const byRecipe = {};
-    allItems.forEach((it) => {
-      const recipes = ITEM_RECIPES[it.id] || ['Other'];
+    visible.forEach((it) => {
+      const recipes = ITEM_RECIPES[it.id] || ['Manual'];
       const primary = recipes[0];
       (byRecipe[primary] = byRecipe[primary] || []).push(it);
     });
-    groupsHtml = Object.keys(byRecipe).map((recipe) => `
-      <div class="aisle-head"><div class="k">${recipe.toUpperCase()} · ${byRecipe[recipe].length}</div></div>
-      ${byRecipe[recipe].map((it) => renderShoppingRow(it)).join('')}
-    `).join('');
+    groupsHtml = Object.keys(byRecipe).sort().map((recipe) => `
+      <section class="shop-group">
+        <div class="shop-group-head">
+          <div class="k">${escapeHtml(recipe.toUpperCase())}</div>
+          <div class="m">${byRecipe[recipe].length}</div>
+        </div>
+        ${sortShoppingItems(byRecipe[recipe]).map((it) => renderShoppingRow(it)).join('')}
+      </section>`).join('');
   }
 
   document.getElementById('view').innerHTML = `
     <div class="screen">
-      <div class="screen-bar">
-        <div class="row" style="flex:1;align-items:center;padding-left:26px;gap:20px"><div class="h2">Shopping list</div><div class="m">${uncheckedCount} to buy · merged from 7 recipes · ${ALREADY_AT_HOME.length} already at home</div></div>
-        <div class="row" style="flex:none;align-items:center;gap:8px;padding-right:26px">
-          <span class="tg ${state.listGroupBy === 'aisle' ? 'tgr' : ''}" data-action="setListGroupBy" data-value="aisle">BY AISLE</span>
-          <span class="tg ${state.listGroupBy === 'recipe' ? 'tgr' : ''}" data-action="setListGroupBy" data-value="recipe">BY RECIPE</span>
-          <span class="tg tgr" data-action="addItem">+ ADD ITEM</span>
+      <div class="screen-bar shop-bar">
+        <div class="shop-bar-left">
+          <div class="h2">Shopping</div>
+          <button type="button" class="tg" data-action="shiftWeek" data-value="-1">◀</button>
+          <div class="shop-count"><strong>${openItems.length}</strong> to buy · ${escapeHtml((weekLabel || '').replace(/^Week of /, '') || 'this week')}</div>
+          <button type="button" class="tg" data-action="shiftWeek" data-value="1">▶</button>
+        </div>
+        <div class="shop-bar-tools">
+          <div class="shop-seg">
+            <span class="tg ${filter === 'open' ? 'tgr' : ''}" data-action="setListFilter" data-value="open">TO BUY</span>
+            <span class="tg ${filter === 'urgent' ? 'tgr' : ''}" data-action="setListFilter" data-value="urgent">URGENT</span>
+            <span class="tg ${filter === 'done' ? 'tgr' : ''}" data-action="setListFilter" data-value="done">DONE</span>
+            <span class="tg ${filter === 'all' ? 'tgr' : ''}" data-action="setListFilter" data-value="all">ALL</span>
+          </div>
+          <div class="shop-seg">
+            <span class="tg ${state.listSort === 'due' ? 'tgr' : ''}" data-action="setListSort" data-value="due">DUE</span>
+            <span class="tg ${state.listSort === 'name' ? 'tgr' : ''}" data-action="setListSort" data-value="name">A–Z</span>
+          </div>
+          <div class="shop-seg">
+            <span class="tg ${state.listGroupBy === 'aisle' ? 'tgr' : ''}" data-action="setListGroupBy" data-value="aisle">CATEGORY</span>
+            <span class="tg ${state.listGroupBy === 'store' ? 'tgr' : ''}" data-action="setListGroupBy" data-value="store">STORE</span>
+            <span class="tg ${state.listGroupBy === 'recipe' ? 'tgr' : ''}" data-action="setListGroupBy" data-value="recipe">RECIPE</span>
+          </div>
+          ${doneItems.length ? `<span class="tg" data-action="clearCheckedItems" title="Remove checked items">CLEAR DONE</span>` : ''}
+          <span class="tg" style="font-size:10px" data-action="addShopCategory">+ CATEGORY</span>
+          <button type="button" class="shop-add-btn" data-action="addItem" title="Add item" aria-label="Add item">+</button>
         </div>
       </div>
-      <div class="screen-body" style="overflow:hidden">
-        <div class="col" style="flex:1;overflow:auto;padding:0 26px 20px">${groupsHtml}</div>
-        <div class="aside">
-          <div class="aside-section">
-            <div class="k">${selected && selected.merged ? 'WHY ' + selected.name.toUpperCase() + ' SAYS ' + selected.qty : (selected ? selected.name.toUpperCase() : '')}</div>
-            ${selected && selected.name.toLowerCase().includes('onion') ? `
-              <div class="col" style="gap:9px;margin-top:12px">
-                ${ONION_BREAKDOWN.map((b) => `<div class="row" style="justify-content:space-between"><span class="p">${b.recipe}</span><span class="m">${b.qty}</span></div>`).join('')}
-                <div class="hair" style="margin:4px 0"></div>
-                <div class="row" style="justify-content:space-between"><span class="h3" style="font-size:15px">Rounded to how they are sold</span><span class="h3" style="font-size:15px;color:var(--color-accent-700)">5</span></div>
-              </div>` : `
-              <div class="p" style="margin-top:10px">${selected ? escapeHtml(selected.note) : ''}</div>`}
+      <div class="screen-body shop-body">
+        <div class="shop-list">${groupsHtml}</div>
+        <aside class="shop-aside">
+          ${selected ? `
+            <div class="shop-aside-block">
+              <div class="k">SELECTED</div>
+              <div class="h2" style="margin-top:8px">${escapeHtml(selected.name)}</div>
+              <div class="shop-aside-meta">
+                <span class="shop-cat-pill">${escapeHtml(selected.aisle || 'Other')}</span>
+                ${selected.store ? `<span class="shop-store-pill">${escapeHtml(selected.store)}</span>` : ''}
+                ${shopPriorityPill(selected.priority)}
+                <span class="h3">${escapeHtml(selected.qty || '1')}</span>
+              </div>
+              ${selected.needBy ? `
+                <div class="shop-aside-due" style="margin-top:12px">
+                  <div class="k">NEED BY</div>
+                  <div class="h3" style="margin-top:4px">${escapeHtml(formatNeedBy(selected.needBy))}</div>
+                  <div class="m">${selected.needByOverride ? 'Manual date' : selected.source === 'meal_plan' ? 'Auto from meal plan' : ''}</div>
+                </div>` : ''}
+              ${selected.note ? `<div class="p" style="margin-top:12px">${escapeHtml(selected.note)}</div>` : ''}
+              ${selected.source === 'meal_plan' ? `
+                <div class="m" style="margin-top:8px">From this week’s meal plan — need-by follows the first scheduled meal using this ingredient.</div>
+                ${selected.needByOverride ? `<button type="button" class="btn" style="margin-top:10px;width:100%" data-action="resetShopSchedule" data-id="${escapeHtml(selected.id)}">RESET TO MEAL PLAN DATE</button>` : ''}` : ''}
+              ${selectedRecipes.length ? `
+                <div class="k" style="margin-top:18px">USED IN</div>
+                <div class="shop-recipe-chips">
+                  ${selectedRecipes.map((r) => `<span class="shop-chip">${escapeHtml(r)}</span>`).join('')}
+                </div>` : ''}
+              <div class="shop-aside-actions">
+                <button type="button" class="btn btnr" data-action="editItem" data-id="${escapeHtml(selected.id)}">EDIT</button>
+                <button type="button" class="btn" data-action="deleteItem" data-id="${escapeHtml(selected.id)}">DELETE</button>
+              </div>
+            </div>` : `
+            <div class="shop-aside-block">
+              <div class="k">THIS WEEK</div>
+              <div class="h3" style="margin-top:10px">${escapeHtml(weekLabel || 'Meal plan week')}</div>
+              <div class="p" style="margin-top:8px">List is built from recipes on the meal plan for the same week as Calendar. Change week with ◀ ▶ — meals and shopping stay in sync.</div>
+              <button type="button" class="btn btnr" style="margin-top:16px" data-action="addItem">+ ADD ITEM</button>
+              <button type="button" class="btn" style="margin-top:8px;width:100%;text-align:center" data-action="setTab" data-value="plan">OPEN MEAL PLAN</button>
+            </div>`}
+          <div class="shop-aside-block">
+            <div class="row" style="align-items:center;justify-content:space-between;gap:8px">
+              <div class="k">ALREADY AT HOME · ${ALREADY_AT_HOME.length}</div>
+              <button type="button" class="tg tgr" style="font-size:10px;padding:4px 8px" data-action="addPantryItem">+ ADD</button>
+            </div>
+            <div class="m" style="margin-top:8px">In stock — skipped when building the list. Tap <strong>OUT</strong> when it runs out to move it onto shopping.</div>
+            ${ALREADY_AT_HOME.length ? `
+              <div class="pantry-list">
+                ${ALREADY_AT_HOME.map((p) => {
+                  const item = typeof p === 'string' ? { id: null, name: p, aisle: 'Pantry' } : p;
+                  return `
+                    <div class="pantry-row">
+                      <button type="button" class="pantry-name" data-action="editPantryItem" data-id="${escapeHtml(item.id || '')}" title="Edit">
+                        <span class="h3">${escapeHtml(item.name)}</span>
+                        <span class="m">${escapeHtml([item.aisle || 'Pantry', item.store].filter(Boolean).join(' · '))}</span>
+                      </button>
+                      <button type="button" class="tg" style="font-size:10px" data-action="pantryRanOut" data-id="${escapeHtml(item.id || '')}" title="Ran out — add to shopping">OUT → LIST</button>
+                      <button type="button" class="shop-icon-btn danger" data-action="deletePantryItem" data-id="${escapeHtml(item.id || '')}" title="Remove from at home">×</button>
+                    </div>`;
+                }).join('')}
+              </div>` : `<div class="m" style="margin-top:12px">Nothing marked at home yet.</div>`}
           </div>
-          <div class="aside-section">
-            <div class="k">ALREADY AT HOME · ${ALREADY_AT_HOME.length}</div>
-            <div class="p" style="margin-top:10px">${ALREADY_AT_HOME.join(' · ')}</div>
-            <div class="m" style="margin-top:10px">Marked available last Sunday. HomeBase subtracted these before building the list.</div>
-          </div>
-          <div class="aside-section" style="flex:1">
-            <div class="k">IF YOU SKIP A DINNER</div>
-            <div class="p" style="margin-top:10px">${SKIP_DINNER_MESSAGES[state.skipMsgIndex]}</div>
-            <span class="btn" style="margin-top:14px;display:inline-block" data-action="cycleSkipMsg">SHOW WHAT EACH MEAL COSTS</span>
-          </div>
-          <div class="aside-section">
-            <div class="m">Both phones in sync</div>
-            <span class="btn btnr" style="margin-top:12px;display:block;text-align:center" data-action="sendInstacart">SEND TO INSTACART</span>
-          </div>
-        </div>
-      </div>
-      <div class="row" style="flex:none;height:56px;border-top:2px solid var(--color-text);align-items:center;padding:0 26px;gap:16px;overflow:auto">
-        <div class="k" style="flex:none">SOURCE</div>
-        <div class="row" style="gap:8px"><span class="tg static">RAJMA CHAWAL 4</span><span class="tg static">SHAWARMA 5</span><span class="tg static">PALAK PANEER 4</span><span class="tg static">TANDOORI 6</span><span class="tg static">ORZO 3</span><span class="tg static">DOSA 2</span><span class="tg static">CHILI 4</span></div>
+        </aside>
       </div>
     </div>`;
 }
 
 function renderShoppingRow(it) {
+  const selected = state.selectedItemId === it.id;
+  const recipes = ITEM_RECIPES[it.id];
   return `
-    <div class="list-row ${it.checked ? 'checked' : ''} ${it.merged && !it.checked ? 'highlight' : ''}" data-action="toggleItem" data-id="${it.id}">
-      <span class="check ${it.checked ? 'checked' : ''}">${it.checked ? '✓' : ''}</span>
-      <span class="h3" style="flex:1" data-action="selectItem" data-id="${it.id}">${escapeHtml(it.name)}</span>
-      <span class="note" ${it.merged ? 'style="color:var(--color-accent-700)"' : ''}>${escapeHtml(it.note || '')}</span>
-      <span class="qty">${escapeHtml(it.qty)}</span>
+    <div class="shop-row ${it.checked ? 'is-checked' : ''} ${selected ? 'is-selected' : ''}">
+      <button type="button" class="check ${it.checked ? 'checked' : ''}" data-action="toggleItem" data-id="${escapeHtml(it.id)}" aria-label="${it.checked ? 'Mark not bought' : 'Mark bought'}">${it.checked ? '✓' : ''}</button>
+      <button type="button" class="shop-row-main" data-action="selectItem" data-id="${escapeHtml(it.id)}">
+        <span class="shop-row-name">${escapeHtml(it.name)}</span>
+        <span class="shop-row-sub">
+          <span class="shop-cat-pill sm">${escapeHtml(it.aisle || 'Other')}</span>
+          ${it.store ? `<span class="shop-store-pill sm">${escapeHtml(it.store)}</span>` : ''}
+          ${shopPriorityPill(it.priority)}
+          ${it.needBy ? `<span class="shop-needby-pill sm">${escapeHtml(formatNeedBy(it.needBy))}</span>` : ''}
+          ${recipes?.length ? `<span class="m">${escapeHtml(recipes.slice(0, 2).join(', '))}${recipes.length > 2 ? '…' : ''}</span>` : ''}
+        </span>
+      </button>
+      <span class="shop-row-qty">${escapeHtml(it.qty || '')}</span>
+      <button type="button" class="shop-icon-btn" data-action="editItem" data-id="${escapeHtml(it.id)}" title="Edit">✎</button>
+      <button type="button" class="shop-icon-btn danger" data-action="deleteItem" data-id="${escapeHtml(it.id)}" title="Delete">×</button>
     </div>`;
 }
 
@@ -1450,7 +1902,12 @@ function render() {
 // ---------------------------------------------------------------- actions
 
 const actions = {
-  setTab(el) { state.tab = el.dataset.value; state.selectedDayKey = null; render(); },
+  setTab(el) {
+    state.tab = el.dataset.value;
+    state.selectedDayKey = null;
+    if (state.tab === 'plan') state.planSub = 'meals';
+    render();
+  },
   setPlanSub(el) {
     state.planSub = el.dataset.value;
     state.selectedDayKey = null;
@@ -1506,25 +1963,235 @@ const actions = {
   async addTask() {
     openModal({
       title: 'New household task',
-      submitLabel: 'ADD',
+      submitLabel: 'ADD TASK',
       fieldsHtml: `
         <label><span class="k">TITLE</span><input name="title" required placeholder="e.g. Fold laundry"></label>
-        <label><span class="k">TAG</span>
-          <select name="tag">
-            <option value="errands">Errands</option>
-            <option value="cleaning">Cleaning</option>
-            <option value="laundry">Laundry</option>
-            <option value="bills">Bills</option>
-            <option value="car">Car</option>
-          </select>
-        </label>`,
+        <label><span class="k">ASSIGN TO</span>
+          <select name="person">${personOptions('shared')}</select>
+        </label>
+        <label><span class="k">CATEGORY</span>
+          <select name="tag">${tagOptions('errands')}</select>
+        </label>
+        <label><span class="k">OR NEW CATEGORY</span>
+          <input name="newTag" placeholder="e.g. pets, garden (optional)">
+        </label>
+        <label><span class="k">DUE DATE</span><input name="dueDate" type="date"></label>`,
       async onSubmit(values) {
-        const r = await HomeBaseAPI.addTask({ title: values.title, person: 'shared', tag: values.tag || 'errands' });
-        HOUSEHOLD_TASKS.push({ id: r.id, title: values.title, person: 'shared', due: null, tag: values.tag || 'errands', done: false });
+        const person = values.person || 'shared';
+        const tag = String(values.newTag || '').trim() || values.tag || 'errands';
+        const r = await HomeBaseAPI.addTask({
+          title: values.title,
+          person,
+          tag,
+          dueDate: values.dueDate || null,
+        });
+        if (Array.isArray(r.tags)) TASK_TAGS = r.tags;
+        else if (tag && !TASK_TAGS.includes(tag.toLowerCase().replace(/[^a-z0-9]+/g, '_'))) {
+          /* tags refreshed on next bootstrap */
+        }
+        HOUSEHOLD_TASKS.push({
+          id: r.id,
+          title: values.title,
+          person,
+          due: values.dueDate || null,
+          dueDate: values.dueDate || null,
+          tag: r.tag || tag,
+          done: false,
+        });
+        if (r.tags) TASK_TAGS = r.tags;
         render();
-        toast('Task added.');
+        toast(`Task added · ${person === 'shared' ? 'both' : person}`);
       },
     });
+  },
+  addTaskCategory() {
+    openModal({
+      title: 'New task category',
+      submitLabel: 'ADD CATEGORY',
+      fieldsHtml: `
+        <label><span class="k">NAME</span><input name="name" required placeholder="e.g. Pets, Garden, Kids"></label>
+        <div class="m" style="margin-top:8px">Shows up in filters and when you add or edit tasks.</div>`,
+      async onSubmit(values) {
+        const r = await HomeBaseAPI.addTask({ addCategory: true, name: values.name });
+        TASK_TAGS = r.tags || TASK_TAGS;
+        state.taskFilter = r.tag || state.taskFilter;
+        render();
+        toast(`Category “${r.tag}” added`);
+      },
+    });
+  },
+  editTask(el) {
+    const t = HOUSEHOLD_TASKS.find((x) => x.id === el.dataset.id);
+    if (!t) return;
+    openModal({
+      title: 'Edit task',
+      submitLabel: 'SAVE',
+      fieldsHtml: `
+        <label><span class="k">TITLE</span><input name="title" required value="${escapeHtml(t.title)}"></label>
+        <label><span class="k">ASSIGN TO</span>
+          <select name="person">${personOptions(t.person || 'shared')}</select>
+        </label>
+        <label><span class="k">CATEGORY</span>
+          <select name="tag">${tagOptions(t.tag || 'errands')}</select>
+        </label>
+        <label><span class="k">OR NEW CATEGORY</span>
+          <input name="newTag" placeholder="Type to create one">
+        </label>
+        <label><span class="k">DUE DATE</span><input name="dueDate" type="date" value="${escapeHtml(t.dueDate || t.due || '')}"></label>
+        <label class="row" style="gap:8px;align-items:center;margin-top:8px">
+          <input type="checkbox" name="done" value="1" ${t.done ? 'checked' : ''}>
+          <span class="m">Mark complete</span>
+        </label>
+        <div class="modal-actions" style="margin-top:12px;padding:0">
+          <button type="button" class="btn" id="deleteTaskBtn" style="color:var(--color-accent)">DELETE TASK</button>
+        </div>`,
+      async onSubmit(values) {
+        const tag = String(values.newTag || '').trim() || values.tag;
+        const r = await HomeBaseAPI.patchTask({
+          id: t.id,
+          title: values.title,
+          person: values.person,
+          tag,
+          dueDate: values.dueDate || null,
+          done: !!values.done,
+        });
+        if (r.tags) TASK_TAGS = r.tags;
+        await loadBootstrap();
+        render();
+        toast('Task saved.');
+      },
+    });
+    setTimeout(() => {
+      document.getElementById('deleteTaskBtn')?.addEventListener('click', async () => {
+        if (!confirm('Delete this task?')) return;
+        try {
+          await HomeBaseAPI.deleteTask(t.id);
+          closeModal();
+          HOUSEHOLD_TASKS = HOUSEHOLD_TASKS.filter((x) => x.id !== t.id);
+          render();
+          toast('Task deleted.');
+        } catch (err) {
+          toast(err.message || 'Delete failed');
+        }
+      });
+    }, 50);
+  },
+  async deleteTask(el) {
+    const t = HOUSEHOLD_TASKS.find((x) => x.id === el.dataset.id);
+    if (!t) return;
+    if (!confirm(`Delete “${t.title}”?`)) return;
+    try {
+      await HomeBaseAPI.deleteTask(t.id);
+      HOUSEHOLD_TASKS = HOUSEHOLD_TASKS.filter((x) => x.id !== t.id);
+      render();
+      toast('Task deleted.');
+    } catch (err) {
+      toast(err.message || 'Delete failed');
+    }
+  },
+  addCalEvent() {
+    const day = findDay(state.calendarDayKey) || WEEK[TODAY_INDEX] || WEEK[0];
+    const defaultDate = day?.dateStr || weekStart || new Date().toISOString().slice(0, 10);
+    const defaultPerson = (session?.name || 'shared').toLowerCase();
+    openModal({
+      title: 'New calendar event',
+      submitLabel: 'ADD EVENT',
+      fieldsHtml: `
+        <label><span class="k">TITLE</span><input name="title" required placeholder="e.g. Gym, Client call"></label>
+        <label><span class="k">DATE</span><input name="date" type="date" required value="${escapeHtml(defaultDate)}"></label>
+        <div class="row" style="gap:12px">
+          <label style="flex:1"><span class="k">START</span><input name="start" type="time" value="09:00" required></label>
+          <label style="flex:1"><span class="k">END</span><input name="end" type="time" value="10:00"></label>
+        </div>
+        <label><span class="k">WHO</span>
+          <select name="person">${personOptions(['charu', 'shreya'].includes(defaultPerson) ? defaultPerson : 'shared')}</select>
+        </label>
+        <label class="row" style="gap:8px;align-items:center;margin-top:8px">
+          <input type="checkbox" name="prep" value="1">
+          <span class="m">Prep task (meal prep / chores on calendar)</span>
+        </label>`,
+      async onSubmit(values) {
+        await HomeBaseAPI.addCalendarEvent({
+          title: values.title,
+          date: values.date,
+          start: values.start,
+          end: values.end || null,
+          person: values.person,
+          prep: !!values.prep,
+        });
+        await loadBootstrap();
+        render();
+        toast('Event added.');
+      },
+    });
+  },
+  editCalEvent(el) {
+    const ev = findCalEvent(el.dataset.id);
+    if (!ev) {
+      toast('Event not found — try SYNC NOW or refresh');
+      return;
+    }
+    openModal({
+      title: ev.source === 'google' ? 'Edit event (from Google)' : 'Edit event',
+      submitLabel: 'SAVE',
+      fieldsHtml: `
+        <label><span class="k">TITLE</span><input name="title" required value="${escapeHtml(ev.title)}"></label>
+        <label><span class="k">DATE</span><input name="date" type="date" required value="${escapeHtml(ev.date || '')}"></label>
+        <div class="row" style="gap:12px">
+          <label style="flex:1"><span class="k">START</span><input name="start" type="time" value="${escapeHtml((ev.start || '09:00').slice(0, 5))}" required></label>
+          <label style="flex:1"><span class="k">END</span><input name="end" type="time" value="${escapeHtml((ev.end || '').slice(0, 5))}"></label>
+        </div>
+        <label><span class="k">WHO</span>
+          <select name="person">${personOptions(ev.person || 'shared')}</select>
+        </label>
+        <label class="row" style="gap:8px;align-items:center;margin-top:8px">
+          <input type="checkbox" name="prep" value="1" ${ev.prep ? 'checked' : ''}>
+          <span class="m">Prep task</span>
+        </label>
+        <label class="row" style="gap:8px;align-items:center">
+          <input type="checkbox" name="done" value="1" ${ev.done ? 'checked' : ''}>
+          <span class="m">Mark done</span>
+        </label>
+        ${ev.source === 'google' ? '<div class="m" style="margin-top:8px">Synced from Google — edits stay in HomeBase only (not written back to Google).</div>' : ''}
+        <div class="modal-actions" style="margin-top:12px;padding:0">
+          <button type="button" class="btn" id="deleteCalEventBtn" style="color:var(--color-accent)">DELETE</button>
+        </div>`,
+      async onSubmit(values) {
+        await HomeBaseAPI.patchCalendar({
+          id: ev.id,
+          title: values.title,
+          date: values.date,
+          start: values.start,
+          end: values.end || null,
+          person: values.person,
+          prep: !!values.prep,
+          done: !!values.done,
+        });
+        await loadBootstrap();
+        if (state.calendarMode === 'month' && state.monthCursor) {
+          await loadMonthEvents(state.monthCursor).catch(() => {});
+        }
+        render();
+        toast('Event saved.');
+      },
+    });
+    setTimeout(() => {
+      document.getElementById('deleteCalEventBtn')?.addEventListener('click', async () => {
+        if (!confirm('Delete this event from HomeBase?')) return;
+        try {
+          await HomeBaseAPI.deleteCalendarEvent(ev.id);
+          closeModal();
+          await loadBootstrap();
+          if (state.calendarMode === 'month' && state.monthCursor) {
+            await loadMonthEvents(state.monthCursor).catch(() => {});
+          }
+          render();
+          toast('Event deleted.');
+        } catch (err) {
+          toast(err.message || 'Delete failed');
+        }
+      });
+    }, 50);
   },
 
   async calendarView(el) {
@@ -1685,6 +2352,22 @@ const actions = {
     }
   },
   backToRecipes() { state.selectedRecipeId = null; render(); },
+  async deleteRecipe(el) {
+    const id = el.dataset.id;
+    const recipe = RECIPES.find((r) => r.id === id);
+    if (!id) return;
+    if (!confirm(`Delete “${recipe?.name || 'this recipe'}”? Meals using it keep the name as text.`)) return;
+    try {
+      await HomeBaseAPI.deleteRecipe(id);
+      RECIPES = RECIPES.filter((r) => r.id !== id);
+      if (state.selectedRecipeId === id) state.selectedRecipeId = null;
+      recipeCount = Math.max(0, (recipeCount || 1) - 1);
+      render();
+      toast('Recipe deleted.');
+    } catch (err) {
+      toast(err.message || 'Could not delete');
+    }
+  },
   async pickRecipeForPlan(el) {
     state.selectedRecipeId = el.dataset.id;
     state.planSub = 'recipes';
@@ -1839,6 +2522,12 @@ const actions = {
         <label><span class="k">PHOTO URL</span>
           <input name="imageUrl" value="${escapeHtml(full.imageUrl || '')}" placeholder="https://… or leave blank for AI photo">
         </label>
+        <label><span class="k">REFERENCE LINK</span>
+          <input name="sourceUrl" type="url" value="${escapeHtml(full.sourceUrl || '')}" placeholder="YouTube, Instagram, or recipe blog URL">
+        </label>
+        <label><span class="k">LINK LABEL (optional)</span>
+          <input name="sourceName" value="${escapeHtml(full.sourceName || '')}" placeholder="e.g. YouTube · @chef (auto-detected if blank)">
+        </label>
         <label><span class="k">METHOD (one step per line)</span>
           <textarea name="method">${escapeHtml((full.method || []).join('\n'))}</textarea>
         </label>
@@ -1874,15 +2563,19 @@ const actions = {
           <img src="${escapeHtml(current)}" alt="" style="width:100%;max-height:200px;object-fit:cover;border:2px solid var(--color-text)">
         </div>
         <label><span class="k">IMAGE URL</span>
-          <input name="imageUrl" value="${escapeHtml(recipe.imageUrl || '')}" placeholder="Paste a link to any image">
+          <input name="imageUrl" value="${escapeHtml(recipe.imageUrl || '')}" placeholder="https://… direct .jpg / googleusercontent link">
         </label>
         <label><span class="k">OR DESCRIBE A NEW AI PHOTO</span>
           <input name="prompt" placeholder="e.g. butter chicken in a bowl, warm lighting">
         </label>
-        <div class="m" style="margin-top:10px">Leave URL blank and fill the description to generate a new AI photo. Or paste your own image link.</div>`,
+        <div class="m" style="margin-top:10px">Use a <strong>direct image address</strong> (right-click photo → Copy image address). Google Images search pages won’t display. Or leave URL blank and describe an AI photo.</div>`,
       async onSubmit(values) {
-        let imageUrl = String(values.imageUrl || '').trim();
+        const pasted = String(values.imageUrl || '').trim();
+        let imageUrl = normalizeRecipeImageUrl(pasted);
         const prompt = String(values.prompt || '').trim();
+        if (pasted && !imageUrl) {
+          throw new Error('That looks like a Google search page, not an image file. Right-click the photo → Copy image address.');
+        }
         if (!imageUrl && prompt) {
           imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ', plated food photography, appetizing')}?width=800&height=1000&nologo=true&seed=${Date.now()}`;
         }
@@ -1993,6 +2686,12 @@ const actions = {
         <label><span class="k">PHOTO URL</span>
           <input name="imageUrl" placeholder="Optional — auto photo if blank">
         </label>
+        <label><span class="k">REFERENCE LINK</span>
+          <input name="sourceUrl" type="url" placeholder="YouTube, Instagram, or website URL">
+        </label>
+        <label><span class="k">LINK LABEL (optional)</span>
+          <input name="sourceName" placeholder="e.g. YouTube · @chef (auto if blank)">
+        </label>
         <label><span class="k">METHOD (one step per line)</span>
           <textarea name="method" placeholder="Prep ingredients&#10;Cook&#10;Serve"></textarea>
         </label>
@@ -2088,53 +2787,311 @@ const actions = {
     render();
   },
 
+  async logMeal(el) {
+    const planDate = el.dataset.date;
+    const slotKey = el.dataset.slot;
+    const status = el.dataset.status || 'planned';
+    if (!planDate || !slotKey) return;
+    const day = WEEK.find((d) => d.dateStr === planDate);
+    const meal = day?.meals?.[slotKey];
+    if (!meal || !meal.name || meal.name === '—') {
+      toast('Add a meal in that slot first');
+      return;
+    }
+    meal.status = status;
+    render();
+    try {
+      await HomeBaseAPI.patchMeals({ planDate, slotKey, status });
+      toast(status === 'eaten' ? 'Marked eaten' : status === 'skipped' ? 'Skipped — kcal not counted' : 'Reset to planned');
+    } catch (err) {
+      await loadBootstrap();
+      render();
+      toast(err.message || 'Could not update');
+    }
+  },
+
   setListGroupBy(el) { state.listGroupBy = el.dataset.value; render(); },
+  setListFilter(el) { state.listFilter = el.dataset.value; render(); },
+  setListSort(el) { state.listSort = el.dataset.value; render(); },
   selectItem(el) { state.selectedItemId = el.dataset.id; render(); },
   async toggleItem(el) {
-    const it = SHOPPING_LIST.flatMap((g) => g.items).find((i) => i.id === el.dataset.id);
+    const it = findShoppingItem(el.dataset.id);
     if (!it) return;
     it.checked = !it.checked;
     try { await HomeBaseAPI.patchShopping({ id: it.id, checked: it.checked }); } catch { /* ok */ }
     render();
   },
-  async addItem() {
+  addShopCategory() {
     openModal({
-      title: 'Add shopping item',
-      submitLabel: 'ADD',
+      title: 'New shopping category',
+      submitLabel: 'ADD CATEGORY',
       fieldsHtml: `
-        <label><span class="k">NAME</span><input name="name" required placeholder="e.g. Milk"></label>
-        <label><span class="k">QTY</span><input name="qty" value="1"></label>
-        <label><span class="k">AISLE</span>
-          <select name="aisle">
-            <option>Produce</option>
-            <option>Meat + dairy</option>
-            <option>Pantry</option>
-            <option>Frozen</option>
-            <option selected>Other</option>
-          </select>
-        </label>`,
+        <label><span class="k">NAME</span><input name="name" required placeholder="e.g. Indian store, Household, Pet"></label>
+        <div class="m" style="margin-top:8px">Shows in category filters and when you add or edit items.</div>`,
       async onSubmit(values) {
-        const r = await HomeBaseAPI.addShopping({
-          name: values.name,
-          qty: values.qty || '1',
-          aisle: values.aisle || 'Other',
-          note: 'Added manually',
-        });
-        let group = SHOPPING_LIST.find((g) => g.aisle === (values.aisle || 'Other'));
-        if (!group) {
-          group = { aisle: values.aisle || 'Other', items: [] };
-          SHOPPING_LIST.push(group);
-        }
-        group.items.push({ id: r.id, name: values.name, qty: values.qty || '1', note: 'Added manually', checked: false });
+        const r = await HomeBaseAPI.addShopping({ addCategory: true, name: values.name });
+        applyShopCategories(r.categories);
         render();
-        toast('Item added.');
+        toast(`Category “${r.category}” added`);
       },
     });
   },
-  cycleSkipMsg() { state.skipMsgIndex = (state.skipMsgIndex + 1) % SKIP_DINNER_MESSAGES.length; render(); },
+  async addItem() {
+    openModal({
+      title: 'Add item',
+      submitLabel: 'ADD',
+      fieldsHtml: `
+        <label><span class="k">NAME</span><input name="name" required placeholder="e.g. Milk"></label>
+        <label><span class="k">QTY</span><input name="qty" value="1" placeholder="e.g. 2"></label>
+        ${shopCategoryField('Other')}
+        ${shopStoreField('store', '')}
+        ${shopScheduleFields()}
+        <label><span class="k">NOTE (optional)</span><input name="note" placeholder="Brand, size…"></label>`,
+      async onSubmit(values) {
+        const aisle = resolveShopCategory(values);
+        const qty = values.qty || '1';
+        const note = values.note || 'Added manually';
+        const store = String(values.store || '').trim();
+        const r = await HomeBaseAPI.addShopping({
+          name: values.name,
+          qty,
+          aisle,
+          note,
+          store: store || null,
+          needBy: values.needBy || null,
+          priority: values.priority || 'normal',
+          weekStart: weekStart || WEEK[0]?.dateStr,
+        });
+        applyShopCategories(r.categories);
+        const item = {
+          id: r.id, name: values.name, qty, aisle, note, store,
+          needBy: r.needBy || values.needBy || null,
+          needByOverride: !!values.needBy,
+          priority: r.priority || values.priority || 'normal',
+          priorityOverride: !!values.priority,
+          checked: false, source: 'manual',
+        };
+        upsertShoppingItemLocal(item);
+        state.selectedItemId = r.id;
+        state.listFilter = 'open';
+        render();
+        toast('Added.');
+      },
+    });
+  },
+  async editItem(el) {
+    const it = findShoppingItem(el.dataset.id);
+    if (!it) return;
+    state.selectedItemId = it.id;
+    openModal({
+      title: 'Edit item',
+      submitLabel: 'SAVE',
+      fieldsHtml: `
+        <label><span class="k">NAME</span><input name="name" required value="${escapeHtml(it.name)}"></label>
+        <label><span class="k">QTY</span><input name="qty" value="${escapeHtml(it.qty || '1')}"></label>
+        ${shopCategoryField(it.aisle || 'Other')}
+        ${shopStoreField('store', it.store || '')}
+        ${shopScheduleFields(it)}
+        <label><span class="k">NOTE</span><input name="note" value="${escapeHtml(it.note || '')}"></label>`,
+      async onSubmit(values) {
+        const aisle = resolveShopCategory(values, it.aisle || 'Other');
+        const qty = values.qty || '1';
+        const note = values.note || '';
+        const store = String(values.store || '').trim();
+        const r = await HomeBaseAPI.patchShopping({
+          id: it.id,
+          name: values.name,
+          qty,
+          aisle,
+          note,
+          store: store || null,
+          needBy: values.needBy || null,
+          priority: values.priority || 'normal',
+          weekStart: weekStart || WEEK[0]?.dateStr,
+        });
+        applyShopCategories(r.categories);
+        upsertShoppingItemLocal({
+          ...it,
+          name: values.name,
+          qty,
+          aisle,
+          note,
+          store,
+          needBy: r.item?.needBy ?? (values.needBy || null),
+          needByOverride: r.item?.needByOverride ?? !!values.needBy,
+          priority: r.item?.priority ?? values.priority ?? 'normal',
+          priorityOverride: r.item?.priorityOverride ?? true,
+        });
+        render();
+        toast('Updated.');
+      },
+    });
+  },
+  async resetShopSchedule(el) {
+    const it = findShoppingItem(el.dataset.id);
+    if (!it) return;
+    try {
+      const r = await HomeBaseAPI.patchShopping({
+        id: it.id,
+        resetAutoSchedule: true,
+        weekStart: weekStart || WEEK[0]?.dateStr,
+      });
+      await loadBootstrap();
+      state.selectedItemId = it.id;
+      render();
+      toast(r.item?.needBy ? `Need by ${formatNeedBy(r.item.needBy)}` : 'Schedule reset');
+    } catch (err) {
+      toast(err.message || 'Could not reset');
+    }
+  },
+  async deleteItem(el) {
+    const it = findShoppingItem(el.dataset.id);
+    if (!it) return;
+    if (it.source === 'meal_plan') {
+      if (!confirm(`“${it.name}” comes from this week’s meals. Remove it anyway? (It may come back if you keep that recipe on the plan.)`)) return;
+    } else if (!confirm(`Remove “${it.name}” from the list?`)) {
+      return;
+    }
+    try {
+      await HomeBaseAPI.deleteShopping({ id: it.id });
+    } catch (err) {
+      toast(err.message || 'Could not delete');
+      return;
+    }
+    removeShoppingItemLocal(it.id);
+    if (state.selectedItemId === it.id) state.selectedItemId = null;
+    render();
+    toast('Removed.');
+  },
+  async clearCheckedItems() {
+    const n = SHOPPING_LIST.flatMap((g) => g.items).filter((i) => i.checked).length;
+    if (!n) return;
+    if (!confirm(`Remove ${n} checked item${n === 1 ? '' : 's'}?`)) return;
+    try {
+      await HomeBaseAPI.deleteShopping({ clearChecked: true, weekStart: weekStart || WEEK[0]?.dateStr });
+    } catch (err) {
+      toast(err.message || 'Could not clear');
+      return;
+    }
+    for (const g of SHOPPING_LIST) {
+      g.items = g.items.filter((i) => !i.checked);
+    }
+    SHOPPING_LIST = SHOPPING_LIST.filter((g) => g.items.length);
+    state.selectedItemId = null;
+    render();
+    toast('Cleared done items.');
+  },
+  addPantryItem() {
+    openModal({
+      title: 'Add at home',
+      submitLabel: 'ADD',
+      fieldsHtml: `
+        <label><span class="k">NAME</span><input name="name" required placeholder="e.g. Basmati"></label>
+        ${shopCategoryField('Pantry')}
+        ${shopStoreField('store', '')}
+        <div class="m" style="margin-top:8px">Stays off the shopping list until you mark it OUT.</div>`,
+      async onSubmit(values) {
+        const r = await HomeBaseAPI.addPantry({
+          name: values.name,
+          aisle: resolveShopCategory(values, 'Pantry'),
+          store: String(values.store || '').trim() || null,
+          weekStart: weekStart || WEEK[0]?.dateStr,
+        });
+        applyShopCategories(r.categories);
+        await loadBootstrap();
+        render();
+        toast('Added to at home.');
+      },
+    });
+  },
+  editPantryItem(el) {
+    const id = el.dataset.id;
+    const item = ALREADY_AT_HOME.find((p) => p.id === id || p.name === id);
+    if (!item?.id) {
+      toast('Refresh and try again');
+      return;
+    }
+    openModal({
+      title: 'Edit at home',
+      submitLabel: 'SAVE',
+      fieldsHtml: `
+        <label><span class="k">NAME</span><input name="name" required value="${escapeHtml(item.name)}"></label>
+        ${shopCategoryField(item.aisle || 'Pantry')}
+        ${shopStoreField('store', item.store || '')}`,
+      async onSubmit(values) {
+        const r = await HomeBaseAPI.patchPantry({
+          id: item.id,
+          name: values.name,
+          aisle: resolveShopCategory(values, item.aisle || 'Pantry'),
+          store: String(values.store || '').trim() || null,
+          weekStart: weekStart || WEEK[0]?.dateStr,
+        });
+        applyShopCategories(r.categories);
+        await loadBootstrap();
+        render();
+        toast('Updated.');
+      },
+    });
+  },
+  async pantryRanOut(el) {
+    const id = el.dataset.id;
+    const item = ALREADY_AT_HOME.find((p) => p.id === id);
+    if (!item?.id) {
+      toast('Refresh and try again');
+      return;
+    }
+    if (!confirm(`“${item.name}” ran out — move it to this week’s shopping list?`)) return;
+    try {
+      await HomeBaseAPI.deletePantry({
+        id: item.id,
+        moveToShopping: true,
+        weekStart: weekStart || WEEK[0]?.dateStr,
+      });
+      await loadBootstrap();
+      state.listFilter = 'open';
+      render();
+      toast(`${item.name} → shopping list`);
+    } catch (err) {
+      toast(err.message || 'Could not move');
+    }
+  },
+  async deletePantryItem(el) {
+    const id = el.dataset.id;
+    const item = ALREADY_AT_HOME.find((p) => p.id === id);
+    if (!item?.id) {
+      toast('Refresh and try again');
+      return;
+    }
+    if (!confirm(`Remove “${item.name}” from at home? (Won’t add to shopping.)`)) return;
+    try {
+      await HomeBaseAPI.deletePantry({
+        id: item.id,
+        moveToShopping: false,
+        weekStart: weekStart || WEEK[0]?.dateStr,
+      });
+      await loadBootstrap();
+      render();
+      toast('Removed from at home.');
+    } catch (err) {
+      toast(err.message || 'Could not remove');
+    }
+  },
   sendInstacart() { toast('Prototype only — nothing was actually sent to Instacart.'); },
 
-  connectGoogle() { window.location.href = '/api/oauth/google/start'; },
+  connectGoogle(el) {
+    const want = (el?.dataset?.person || '').toLowerCase();
+    const who = (session?.name || '').toLowerCase();
+    if (want && who && want !== who) {
+      toast(`Log in as ${want.charAt(0).toUpperCase() + want.slice(1)} (PIN), then tap CONNECT ${want.toUpperCase()}`);
+      return;
+    }
+    // Match Spotify: force 127.0.0.1 so OAuth redirect/cookies match APP_BASE_URL
+    if (location.hostname === 'localhost') {
+      location.href = `http://127.0.0.1:${location.port || '3000'}/api/oauth/google/start`;
+      return;
+    }
+    location.href = '/api/oauth/google/start';
+  },
   connectSpotify() {
     SpotifyWeb?.disconnect?.();
     if (location.hostname === 'localhost') {
@@ -2253,10 +3210,12 @@ const actions = {
   },
   async syncGoogle() {
     try {
-      await HomeBaseAPI.syncCalendar();
+      toast('Syncing Google Calendar…');
+      const r = await HomeBaseAPI.syncCalendar({ weekStart: weekStart || WEEK[0]?.dateStr });
+      if (r.connections) googleConnections = r.connections;
       await loadBootstrap();
       render();
-      toast('Calendars synced.');
+      toast(r.message || `Synced ${r.synced || 0} events`);
     } catch (err) {
       toast(err.message || 'Sync failed — connect Google first.');
     }

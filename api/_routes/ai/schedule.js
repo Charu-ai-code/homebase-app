@@ -30,7 +30,6 @@ export default async function handler(req, res) {
         who: d.who,
       })),
       suggestedTasks: data.householdTasks.filter((t) => t.suggested),
-      whoop: data.whoop,
     });
 
     const insight = await chat(

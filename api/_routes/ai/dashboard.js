@@ -30,7 +30,6 @@ export default async function handler(req, res) {
       today: day.full,
       dinner: day.dinner,
       prep: day.prep,
-      whoop: data.whoop,
       people: data.people,
       openTasks: data.householdTasks.filter((t) => !t.done).slice(0, 5),
     });

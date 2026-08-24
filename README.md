@@ -104,4 +104,4 @@ Manual HomeBase events (`source=manual`) are never deleted by sync.
 
 ## Out of scope
 
-Cook Mode, Spotify, Instacart, live WHOOP API, writing events back to Google Calendar.
+Cook Mode, Instacart, writing events back to Google Calendar.

@@ -118,10 +118,9 @@ export default async function handler(req, res) {
           shreya: data.people.shreya?.calorieTarget,
         },
         proteinFloor: data.proteinFloor,
-        whoop: data.whoop,
       });
       const insight = await chat(
-        'You are HomeBase meal-planning AI for a household. Comment on leftover reuse, calorie balance for Charu and Shreya, and realistic prep on low-recovery days. Suggest concrete lunch/dinner swaps if useful. Write 2-3 sentences, no bullet points.',
+        'You are HomeBase meal-planning AI for a household. Comment on leftover reuse, calorie balance for Charu and Shreya, and realistic prep around busy days. Suggest concrete lunch/dinner swaps if useful. Write 2-3 sentences, no bullet points.',
         prompt,
       );
       await setCachedInsight(cacheKey, insight);
@@ -136,7 +135,6 @@ export default async function handler(req, res) {
         label: d.full,
         busy: d.who,
         currentDinner: d.dinner?.name,
-        recoveryHint: data.whoop,
       })),
       existingRecipes: cookbook.map((r) => r.name),
       targets: {

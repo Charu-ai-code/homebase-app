@@ -44,7 +44,9 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('login error', err);
     const msg = err.message?.includes('DATABASE_URL')
-      ? 'Database not configured — check .env.local'
+      ? (process.env.VERCEL
+        ? 'Database not configured — add DATABASE_URL in Vercel → Settings → Environment Variables, then redeploy'
+        : 'Database not configured — add DATABASE_URL to .env.local')
       : err.message?.includes('relation') || err.message?.includes('does not exist')
         ? 'Database not set up — run npm run migrate && npm run seed'
         : 'Login failed';

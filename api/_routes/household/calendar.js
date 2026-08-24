@@ -9,6 +9,13 @@ function timeToStr(t) {
   return String(t).slice(0, 5);
 }
 
+async function personIdFromKey(sql, person) {
+  if (!person || person === 'shared') return null;
+  const people = await sql`select id, name from people`;
+  const row = people.find((p) => p.name.toLowerCase() === String(person).toLowerCase());
+  return row?.id || null;
+}
+
 export default async function handler(req, res) {
   const auth = await requireAuth(req, res);
   if (!auth) return;
@@ -52,12 +59,59 @@ export default async function handler(req, res) {
     return;
   }
 
+  if (req.method === 'POST') {
+    const body = await readJson(req);
+    const title = String(body.title || '').trim();
+    const date = String(body.date || '').slice(0, 10);
+    const start = String(body.start || '09:00').slice(0, 5);
+    if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      json(res, 400, { error: 'title and date (YYYY-MM-DD) required' });
+      return;
+    }
+    const personId = await personIdFromKey(sql, body.person);
+    const end = body.end ? String(body.end).slice(0, 5) : null;
+    const rows = await sql`
+      insert into calendar_events (
+        event_date, start_time, end_time, title, person_id,
+        is_prep, is_highlight, source
+      ) values (
+        ${date}, ${start}, ${end}, ${title}, ${personId},
+        ${!!body.prep}, ${!!body.highlight}, 'manual'
+      )
+      returning id
+    `;
+    await invalidateCache('dashboard-priority');
+    await invalidateCache('calendar');
+    json(res, 201, { id: rows[0].id });
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    const body = await readJson(req);
+    const id = body.id;
+    if (!id) {
+      json(res, 400, { error: 'Event id required' });
+      return;
+    }
+    const rows = await sql`select source from calendar_events where id = ${id}`;
+    if (!rows.length) {
+      json(res, 404, { error: 'Event not found' });
+      return;
+    }
+    await sql`delete from calendar_events where id = ${id}`;
+    await invalidateCache('dashboard-priority');
+    await invalidateCache('calendar');
+    json(res, 200, { ok: true });
+    return;
+  }
+
   if (req.method !== 'PATCH') {
     json(res, 405, { error: 'Method not allowed' });
     return;
   }
 
-  const { id, done, prepDone } = await readJson(req);
+  const body = await readJson(req);
+  const { id, done, prepDone } = body;
 
   if (prepDone !== undefined) {
     const today = toDateStr(new Date());
@@ -75,10 +129,39 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (done !== undefined) {
+  if (done !== undefined && body.title === undefined && body.date === undefined && body.start === undefined && body.person === undefined) {
     await sql`update calendar_events set done = ${done} where id = ${id}`;
     await invalidateCache('dashboard-priority');
+    json(res, 200, { ok: true });
+    return;
   }
 
+  const existing = await sql`select id from calendar_events where id = ${id}`;
+  if (!existing.length) {
+    json(res, 404, { error: 'Event not found' });
+    return;
+  }
+
+  const title = body.title != null ? String(body.title).trim() : undefined;
+  const date = body.date && /^\d{4}-\d{2}-\d{2}$/.test(String(body.date).slice(0, 10))
+    ? String(body.date).slice(0, 10)
+    : undefined;
+  const start = body.start != null ? String(body.start).slice(0, 5) : undefined;
+  const end = body.end !== undefined ? (body.end ? String(body.end).slice(0, 5) : null) : undefined;
+  const personId = body.person !== undefined ? await personIdFromKey(sql, body.person) : undefined;
+  const prep = body.prep !== undefined ? !!body.prep : undefined;
+  const highlight = body.highlight !== undefined ? !!body.highlight : undefined;
+
+  if (title !== undefined) await sql`update calendar_events set title = ${title} where id = ${id}`;
+  if (date !== undefined) await sql`update calendar_events set event_date = ${date} where id = ${id}`;
+  if (start !== undefined) await sql`update calendar_events set start_time = ${start} where id = ${id}`;
+  if (end !== undefined) await sql`update calendar_events set end_time = ${end} where id = ${id}`;
+  if (personId !== undefined) await sql`update calendar_events set person_id = ${personId} where id = ${id}`;
+  if (prep !== undefined) await sql`update calendar_events set is_prep = ${prep} where id = ${id}`;
+  if (highlight !== undefined) await sql`update calendar_events set is_highlight = ${highlight} where id = ${id}`;
+  if (done !== undefined) await sql`update calendar_events set done = ${!!done} where id = ${id}`;
+
+  await invalidateCache('dashboard-priority');
+  await invalidateCache('calendar');
   json(res, 200, { ok: true });
 }

@@ -15,6 +15,7 @@ import householdMealsCopyWeek from './_routes/household/meals-copy-week.js';
 import householdMeals from './_routes/household/meals.js';
 import householdRecipes from './_routes/household/recipes.js';
 import householdShopping from './_routes/household/shopping.js';
+import householdPantry from './_routes/household/pantry.js';
 import householdSlots from './_routes/household/slots.js';
 import householdTasks from './_routes/household/tasks.js';
 import googleOAuthStart from './_routes/oauth/google/start.js';
@@ -45,6 +46,7 @@ const ROUTES = {
   'household/meals': householdMeals,
   'household/recipes': householdRecipes,
   'household/shopping': householdShopping,
+  'household/pantry': householdPantry,
   'household/slots': householdSlots,
   'household/tasks': householdTasks,
   'oauth/google/start': googleOAuthStart,
@@ -58,17 +60,35 @@ const ROUTES = {
   'spotify/token': spotifyToken,
 };
 
-export default async function handler(req, res) {
-  let path = '';
-  const q = req.query.path;
-  if (Array.isArray(q)) path = q.join('/');
-  else if (q) path = String(q);
+function resolvePath(req) {
+  // Prefer original URL path (preserves OAuth when rewrite has no ?path=)
+  const candidates = [
+    req.headers['x-invoke-path'],
+    req.headers['x-forwarded-uri'],
+    req.headers['x-vercel-forwarded-path'],
+    req.url,
+  ].filter(Boolean);
 
-  if (!path && req.url) {
-    const raw = req.url.split('?')[0];
-    path = raw.replace(/^\/api\/?/, '').replace(/^\/router\/?/, '');
+  for (const raw of candidates) {
+    const pathOnly = String(raw).split('?')[0];
+    let path = pathOnly
+      .replace(/^https?:\/\/[^/]+/i, '')
+      .replace(/^\/api\/?/, '')
+      .replace(/^\/router\/?/, '')
+      .replace(/\/+$/, '');
+    if (path && path !== 'router' && ROUTES[path]) return path;
   }
 
+  // Fallback: rewrite destination ?path=oauth/google/callback
+  const q = req.query?.path;
+  if (Array.isArray(q)) return q.filter(Boolean).join('/');
+  if (typeof q === 'string' && q) return q;
+
+  return '';
+}
+
+export default async function handler(req, res) {
+  const path = resolvePath(req);
   const fn = ROUTES[path];
   if (!fn) {
     res.status(404).json({ error: 'Not found', path });
