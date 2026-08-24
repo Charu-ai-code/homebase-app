@@ -1,0 +1,1899 @@
+{
+  "week_start": "2026-08-24",
+  "week_end": "2026-08-30",
+  "household_member": "both",
+  "household_members": [
+    "charu",
+    "shreya"
+  ],
+  "charu_carb_rule": "no added grain/starchy carb component; same meal base",
+  "meal_plan": [
+    {
+      "date": "2026-08-24",
+      "slot": "drink",
+      "slot_label": "Morning drink",
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "adhoc_name": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-24",
+      "slot": "breakfast",
+      "slot_label": "Breakfast",
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "adhoc_name": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-24",
+      "slot": "snack_am",
+      "slot_label": "Mid-Morning snack",
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "adhoc_name": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-24",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Adai Dosa + Curd, Cucumber, Carrot",
+      "adhoc_name": null,
+      "kcal": 415,
+      "protein_g": 22,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-24",
+      "slot": "snack_pm",
+      "slot_label": "Mid-Afternoon snack",
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "adhoc_name": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-24",
+      "slot": "dinner",
+      "slot_label": "Dinner",
+      "recipe_name": "Besan + Paneer Chila",
+      "adhoc_name": null,
+      "kcal": 382,
+      "protein_g": 25,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-24",
+      "slot": "shake",
+      "slot_label": "Post-workout shake",
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "adhoc_name": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-24",
+      "slot": "before_sleep",
+      "slot_label": "Before sleep",
+      "recipe_name": "Collagen Powder + Water",
+      "adhoc_name": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "drink",
+      "slot_label": "Morning drink",
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "adhoc_name": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "breakfast",
+      "slot_label": "Breakfast",
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "adhoc_name": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "snack_am",
+      "slot_label": "Mid-Morning snack",
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "adhoc_name": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Mossoppu Saaru + Curd, Cucumber, Carrot — Charu No Grain",
+      "adhoc_name": null,
+      "kcal": null,
+      "protein_g": null,
+      "who_eats": "charu",
+      "notes": "Source cell title says Mossoppu Saaru + Rice, but the detailed lines label the curry as 'Spinach dal' and also include 1 chapati. Kept the planned kcal/protein unchanged and flagged for review rather than silently correcting it. Charu version omits the added grain/starchy carb component; macros require recalculation."
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "adhoc_name": null,
+      "kcal": 354,
+      "protein_g": 15,
+      "who_eats": "shreya",
+      "notes": "Source cell title says Mossoppu Saaru + Rice, but the detailed lines label the curry as 'Spinach dal' and also include 1 chapati. Kept the planned kcal/protein unchanged and flagged for review rather than silently correcting it. Shreya eats the full meal including the listed carb component."
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "snack_pm",
+      "slot_label": "Mid-Afternoon snack",
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "adhoc_name": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "dinner",
+      "slot_label": "Dinner",
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "adhoc_name": null,
+      "kcal": 412,
+      "protein_g": 27,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "shake",
+      "slot_label": "Post-workout shake",
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "adhoc_name": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-25",
+      "slot": "before_sleep",
+      "slot_label": "Before sleep",
+      "recipe_name": "Collagen Powder + Water",
+      "adhoc_name": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "drink",
+      "slot_label": "Morning drink",
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "adhoc_name": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "breakfast",
+      "slot_label": "Breakfast",
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "adhoc_name": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "snack_am",
+      "slot_label": "Mid-Morning snack",
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "adhoc_name": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Mossoppu Saaru + Curd, Cucumber, Carrot — Charu No Grain",
+      "adhoc_name": null,
+      "kcal": null,
+      "protein_g": null,
+      "who_eats": "charu",
+      "notes": "Source cell title says Mossoppu Saaru + Rice, but the detailed lines label the curry as 'Spinach dal' and also include 1 chapati. Kept the planned kcal/protein unchanged and flagged for review rather than silently correcting it. Charu version omits the added grain/starchy carb component; macros require recalculation."
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "adhoc_name": null,
+      "kcal": 354,
+      "protein_g": 15,
+      "who_eats": "shreya",
+      "notes": "Source cell title says Mossoppu Saaru + Rice, but the detailed lines label the curry as 'Spinach dal' and also include 1 chapati. Kept the planned kcal/protein unchanged and flagged for review rather than silently correcting it. Shreya eats the full meal including the listed carb component."
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "snack_pm",
+      "slot_label": "Mid-Afternoon snack",
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "adhoc_name": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "dinner",
+      "slot_label": "Dinner",
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "adhoc_name": null,
+      "kcal": 412,
+      "protein_g": 27,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "shake",
+      "slot_label": "Post-workout shake",
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "adhoc_name": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-26",
+      "slot": "before_sleep",
+      "slot_label": "Before sleep",
+      "recipe_name": "Collagen Powder + Water",
+      "adhoc_name": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "drink",
+      "slot_label": "Morning drink",
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "adhoc_name": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "breakfast",
+      "slot_label": "Breakfast",
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "adhoc_name": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "snack_am",
+      "slot_label": "Mid-Morning snack",
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "adhoc_name": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Spinach Dal + Curd, Cucumber, Carrot — Charu No Grain",
+      "adhoc_name": null,
+      "kcal": null,
+      "protein_g": null,
+      "who_eats": "charu",
+      "notes": "Full spinach-dal cooking steps are not included in the source workbook; only serving quantities are available. Charu version omits the added grain/starchy carb component; macros require recalculation."
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "adhoc_name": null,
+      "kcal": 354,
+      "protein_g": 15,
+      "who_eats": "shreya",
+      "notes": "Full spinach-dal cooking steps are not included in the source workbook; only serving quantities are available. Shreya eats the full meal including the listed carb component."
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "snack_pm",
+      "slot_label": "Mid-Afternoon snack",
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "adhoc_name": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "dinner",
+      "slot_label": "Dinner",
+      "recipe_name": "Besan + Paneer Chila",
+      "adhoc_name": null,
+      "kcal": 382,
+      "protein_g": 25,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "shake",
+      "slot_label": "Post-workout shake",
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "adhoc_name": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-27",
+      "slot": "before_sleep",
+      "slot_label": "Before sleep",
+      "recipe_name": "Collagen Powder + Water",
+      "adhoc_name": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "drink",
+      "slot_label": "Morning drink",
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "adhoc_name": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "breakfast",
+      "slot_label": "Breakfast",
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "adhoc_name": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "snack_am",
+      "slot_label": "Mid-Morning snack",
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "adhoc_name": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Spinach Dal + Curd, Cucumber, Carrot — Charu No Grain",
+      "adhoc_name": null,
+      "kcal": null,
+      "protein_g": null,
+      "who_eats": "charu",
+      "notes": "Full spinach-dal cooking steps are not included in the source workbook; only serving quantities are available. Charu version omits the added grain/starchy carb component; macros require recalculation."
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "adhoc_name": null,
+      "kcal": 354,
+      "protein_g": 15,
+      "who_eats": "shreya",
+      "notes": "Full spinach-dal cooking steps are not included in the source workbook; only serving quantities are available. Shreya eats the full meal including the listed carb component."
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "snack_pm",
+      "slot_label": "Mid-Afternoon snack",
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "adhoc_name": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "dinner",
+      "slot_label": "Dinner",
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "adhoc_name": null,
+      "kcal": 227,
+      "protein_g": 22,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "shake",
+      "slot_label": "Post-workout shake",
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "adhoc_name": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-28",
+      "slot": "before_sleep",
+      "slot_label": "Before sleep",
+      "recipe_name": "Collagen Powder + Water",
+      "adhoc_name": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "drink",
+      "slot_label": "Morning drink",
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "adhoc_name": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "breakfast",
+      "slot_label": "Breakfast",
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "adhoc_name": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "snack_am",
+      "slot_label": "Mid-Morning snack",
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "adhoc_name": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Mexican Bowl — Paneer, Beans, Salsa, Guac, Curd — Charu No Grain",
+      "adhoc_name": null,
+      "kcal": null,
+      "protein_g": null,
+      "who_eats": "charu",
+      "notes": "Charu version omits the added grain/starchy carb component; macros require recalculation."
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "adhoc_name": null,
+      "kcal": 457,
+      "protein_g": 28,
+      "who_eats": "shreya",
+      "notes": "Shreya eats the full meal including the listed carb component."
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "snack_pm",
+      "slot_label": "Mid-Afternoon snack",
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "adhoc_name": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "dinner",
+      "slot_label": "Dinner",
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "adhoc_name": null,
+      "kcal": 227,
+      "protein_g": 22,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "shake",
+      "slot_label": "Post-workout shake",
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "adhoc_name": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-29",
+      "slot": "before_sleep",
+      "slot_label": "Before sleep",
+      "recipe_name": "Collagen Powder + Water",
+      "adhoc_name": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "drink",
+      "slot_label": "Morning drink",
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "adhoc_name": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "breakfast",
+      "slot_label": "Breakfast",
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "adhoc_name": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "snack_am",
+      "slot_label": "Mid-Morning snack",
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "adhoc_name": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "adhoc_name": null,
+      "kcal": null,
+      "protein_g": null,
+      "who_eats": "charu",
+      "notes": "Charu version omits the added grain/starchy carb component; macros require recalculation."
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "lunch",
+      "slot_label": "Lunch",
+      "recipe_name": "Soya Peas Methi Pulao",
+      "adhoc_name": null,
+      "kcal": 431,
+      "protein_g": 34,
+      "who_eats": "shreya",
+      "notes": "Shreya eats the full meal including the listed carb component."
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "snack_pm",
+      "slot_label": "Mid-Afternoon snack",
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "adhoc_name": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "dinner",
+      "slot_label": "Dinner",
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "adhoc_name": null,
+      "kcal": 227,
+      "protein_g": 22,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "shake",
+      "slot_label": "Post-workout shake",
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "adhoc_name": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "who_eats": "both",
+      "notes": null
+    },
+    {
+      "date": "2026-08-30",
+      "slot": "before_sleep",
+      "slot_label": "Before sleep",
+      "recipe_name": "Collagen Powder + Water",
+      "adhoc_name": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "who_eats": "both",
+      "notes": null
+    }
+  ],
+  "recipes": [
+    {
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "meal_type": "drink",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 5,
+      "protein_g": 0,
+      "servings": 1,
+      "method": "Combine the listed turmeric, ginger and cinnamon with 300 ml hot water. Serve warm.",
+      "cook_method": "no-cook / steep",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "meal_type": "breakfast",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 106,
+      "protein_g": 14,
+      "servings": 1,
+      "method": "Cook the egg whites and yolk in a non-stick pan without added fat; season with salt and pepper.",
+      "cook_method": "stovetop",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "meal_type": "snack",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 158,
+      "protein_g": 4,
+      "servings": 1,
+      "method": "Combine the measured berries and mixed nuts and serve raw.",
+      "cook_method": "no-cook",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Adai Dosa + Curd, Cucumber, Carrot",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 415,
+      "protein_g": 22,
+      "servings": 1,
+      "method": "Cook 2 dosas from 200 g prepared adai batter on a tawa using 1/2 tsp coconut oil. Serve with curd, cucumber and carrot.",
+      "cook_method": "tawa",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "meal_type": "snack",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 62,
+      "protein_g": 4,
+      "servings": 1,
+      "method": "Whisk or blend curd, water, amla, ginger, jeera powder and curry leaves. Serve chilled or room temperature.",
+      "cook_method": "no-cook / blend",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Besan + Paneer Chila",
+      "meal_type": "dinner",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 382,
+      "protein_g": 25,
+      "servings": 1,
+      "method": "Make a besan batter with the listed seasonings, cook on a non-stick pan without added fat, and add grated paneer.",
+      "cook_method": "tawa",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "meal_type": "shake",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 180,
+      "protein_g": 21,
+      "servings": 1,
+      "method": "Shake 2 scoops (46 g) protein powder with 350 ml water for 30 seconds.",
+      "cook_method": "no-cook / shake",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Collagen Powder + Water",
+      "meal_type": "drink",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 35,
+      "protein_g": 9,
+      "servings": 1,
+      "method": "Stir 10 g collagen powder into 200 ml warm water until dissolved.",
+      "cook_method": "no-cook",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 354,
+      "protein_g": 15,
+      "servings": 1,
+      "method": "Use the household/web Massoppu Saaru recipe for the curry, then serve the planned portion with rice, curd, cucumber and carrot. Review the source-cell inconsistency noted in Notes.",
+      "cook_method": "pressure cooker + stovetop",
+      "tags": "charu-plan, household-version, shreya-carb",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": "Source cell title says Mossoppu Saaru + Rice, but the detailed lines label the curry as 'Spinach dal' and also include 1 chapati. Kept the planned kcal/protein unchanged and flagged for review rather than silently correcting it.",
+      "review_status": "needs review"
+    },
+    {
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "meal_type": "dinner",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 412,
+      "protein_g": 27,
+      "servings": 1,
+      "method": "Combine cooked chickpeas, paneer, curd, cucumber and carrot; serve as a cold salad.",
+      "cook_method": "no-cook / assembly",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 354,
+      "protein_g": 15,
+      "servings": 1,
+      "method": "Serve the planned cooked spinach dal portion with chapati, rice, curd, cucumber and carrot. Full dal cooking method is not present in the source workbook.",
+      "cook_method": "stovetop",
+      "tags": "charu-plan, household-version, shreya-carb",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": "Full spinach-dal cooking steps are not included in the source workbook; only serving quantities are available.",
+      "review_status": "needs review"
+    },
+    {
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "meal_type": "dinner",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 227,
+      "protein_g": 22,
+      "servings": 1,
+      "method": "Mix besan, chopped spinach, egg whites and seasonings; cook on a non-stick pan without added fat.",
+      "cook_method": "tawa",
+      "tags": "charu-plan, household-version",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 457,
+      "protein_g": 28,
+      "servings": 1,
+      "method": "Assemble cooked quinoa, paneer, black beans, corn, salsa, guacamole and curd in a bowl.",
+      "cook_method": "assembly",
+      "tags": "charu-plan, household-version, shreya-carb",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": 431,
+      "protein_g": 34,
+      "servings": 1,
+      "method": "Soak soya chunks for 30 minutes. Cook rice with soya, peas, methi, onion, jeera and ginger-garlic paste using 1 tsp oil.",
+      "cook_method": "stovetop / pressure cooker",
+      "tags": "charu-plan, household-version, shreya-carb",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": null,
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "meal_type": "side",
+      "minutes": 40,
+      "marinate_hours": null,
+      "kcal": null,
+      "protein_g": null,
+      "servings": 4,
+      "method": "Pressure-cook toor dal with turmeric. Wash and chop the greens, then pressure-cook them with the dal, green chilli, onion and tomato. Mash to a loose curry, simmer with tamarind and rasam powder, then finish with a garlic-mustard-cumin-curry-leaf tempering. Serve with ragi mudde or rice.",
+      "cook_method": "pressure cooker + stovetop",
+      "tags": "karnataka, vegetarian, greens, dal, web-import",
+      "source_name": "Home Chefs Cooking",
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/",
+      "image_url": null,
+      "notes": "Added from web research because the user requested an authentic Mossoppu/Massoppu recipe. This is a separate recipe-book entry; it does not replace the planned lunch rows automatically.",
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Ragi Mudde",
+      "meal_type": "side",
+      "minutes": 20,
+      "marinate_hours": null,
+      "kcal": 155,
+      "protein_g": 3,
+      "servings": "5 balls",
+      "method": "Make a thin slurry with a small portion of the ragi flour and water, bring it to a boil, then add the remaining flour and cook on low heat. Mix thoroughly until smooth and lump-free, steam briefly, then shape the hot cooked dough into balls with wet hands. Serve with saaru or sambar.",
+      "cook_method": "stovetop",
+      "tags": "karnataka, millet, gluten-free, vegan, web-import",
+      "source_name": "Dassana's Veg Recipes",
+      "source_url": "https://www.vegrecipesofindia.com/ragi-mudde/",
+      "image_url": null,
+      "notes": "Source reports about 155 kcal and 3 g protein per ragi mudde; recipe yields 5 balls. Added to Recipe Book only, not scheduled because the uploaded week currently specifies rice with Mossoppu.",
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Curd, Cucumber, Carrot — Charu No Grain",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": null,
+      "protein_g": null,
+      "servings": 1,
+      "method": "Prepare the same Massoppu/Spinach dal base. Serve Charu with curd, cucumber and carrot; omit the rice and chapati.",
+      "cook_method": "pressure cooker + stovetop",
+      "tags": "charu-no-grain, household-version, lunch",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": "Charu household version: same curry and sides, without rice/chapati. Source full-meal kcal/protein were not copied because the carb component was removed; recalculate for Charu if tracking macros.",
+      "review_status": "needs review"
+    },
+    {
+      "recipe_name": "Spinach Dal + Curd, Cucumber, Carrot — Charu No Grain",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": null,
+      "protein_g": null,
+      "servings": 1,
+      "method": "Prepare the same spinach dal. Serve Charu with curd, cucumber and carrot; omit chapati and rice.",
+      "cook_method": "stovetop",
+      "tags": "charu-no-grain, household-version, lunch",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": "Charu household version: same dal and sides, without chapati/rice. Source full-meal kcal/protein were not copied because the carb component was removed; recalculate for Charu if tracking macros.",
+      "review_status": "needs review"
+    },
+    {
+      "recipe_name": "Mexican Bowl — Paneer, Beans, Salsa, Guac, Curd — Charu No Grain",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": null,
+      "protein_g": null,
+      "servings": 1,
+      "method": "Assemble paneer, black beans, salsa, guacamole and curd for Charu. Omit quinoa and corn.",
+      "cook_method": "assembly",
+      "tags": "charu-no-grain, household-version, lunch",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": "Charu household version removes quinoa and corn as the added starchy components. Source full-meal kcal/protein were not copied because the carb component was removed; recalculate for Charu if tracking macros.",
+      "review_status": "ready"
+    },
+    {
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "meal_type": "lunch",
+      "minutes": null,
+      "marinate_hours": null,
+      "kcal": null,
+      "protein_g": null,
+      "servings": 1,
+      "method": "Soak soya chunks for 30 minutes. Cook soya, peas, methi, onion, jeera and ginger-garlic paste using the same seasonings, but omit rice and serve as a protein/vegetable bowl for Charu.",
+      "cook_method": "stovetop / pressure cooker",
+      "tags": "charu-no-grain, household-version, lunch",
+      "source_name": "Charu Meal Plan workbook",
+      "source_url": null,
+      "image_url": null,
+      "notes": "Charu household version removes rice; Shreya keeps the original pulao. Source full-meal kcal/protein were not copied because the carb component was removed; recalculate for Charu if tracking macros.",
+      "review_status": "ready"
+    }
+  ],
+  "ingredients": [
+    {
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "ingredient": "Water",
+      "quantity": "300 ml",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "ingredient": "Turmeric",
+      "quantity": "1/2 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "ingredient": "Ginger (grated/sliced)",
+      "quantity": "1 tsp",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Hot water — Turmeric, Ginger & Cinnamon",
+      "ingredient": "Cinnamon",
+      "quantity": "1/4 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "ingredient": "Egg whites",
+      "quantity": "3 (approx 90 g)",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "ingredient": "Whole egg yolk",
+      "quantity": "1 (approx 17 g)",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "3 Egg Whites + 1 Yolk",
+      "ingredient": "Salt & pepper",
+      "quantity": "to taste",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "ingredient": "Strawberries",
+      "quantity": "80 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "ingredient": "Blueberries",
+      "quantity": "80 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Strawberries + Blueberries + Mixed Nuts",
+      "ingredient": "Mixed nuts (raw)",
+      "quantity": "15 g",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Adai Dosa + Curd, Cucumber, Carrot",
+      "ingredient": "Adai batter",
+      "quantity": "200 g (2 dosas)",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Adai Dosa + Curd, Cucumber, Carrot",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Adai Dosa + Curd, Cucumber, Carrot",
+      "ingredient": "Cucumber",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Adai Dosa + Curd, Cucumber, Carrot",
+      "ingredient": "Carrot",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "ingredient": "Curd",
+      "quantity": "100 g",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "ingredient": "Water",
+      "quantity": "150 ml",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "ingredient": "Amla juice/powder",
+      "quantity": "1 tsp",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "ingredient": "Ginger (grated)",
+      "quantity": "1/2 tsp",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "ingredient": "Jeera powder",
+      "quantity": "1/2 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Buttermilk — Curd, Amla, Ginger, Jeera, Curry Leaves",
+      "ingredient": "Curry leaves",
+      "quantity": "5-6 leaves",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Paneer Chila",
+      "ingredient": "Besan",
+      "quantity": "50 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Paneer Chila",
+      "ingredient": "Paneer (grated)",
+      "quantity": "80 g",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Paneer Chila",
+      "ingredient": "Green chilli",
+      "quantity": "1",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Paneer Chila",
+      "ingredient": "Salt, jeera, haldi",
+      "quantity": "to taste",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "ingredient": "Protein powder",
+      "quantity": "2 scoops (46 g)",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Protein Shake — Orgain Plant Protein / Nurri Vanilla",
+      "ingredient": "Water",
+      "quantity": "350 ml (cold or room temp)",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Collagen Powder + Water",
+      "ingredient": "Collagen powder",
+      "quantity": "10 g",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Collagen Powder + Water",
+      "ingredient": "Water",
+      "quantity": "200 ml (warm)",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Spinach dal (cooked)",
+      "quantity": "130 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Whole wheat chapati",
+      "quantity": "1 (30 g dry atta)",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Cooked rice",
+      "quantity": "40 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Cucumber",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Carrot",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "ingredient": "Cooked chickpeas",
+      "quantity": "80 g uncooked 35g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "ingredient": "Paneer (cubed)",
+      "quantity": "70 g",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "ingredient": "Cucumber",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "ingredient": "Carrot",
+      "quantity": "60g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Spinach dal (cooked)",
+      "quantity": "130 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Whole wheat chapati",
+      "quantity": "1 (30 g dry atta)",
+      "aisle": "Other",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Cooked rice",
+      "quantity": "40 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Cucumber",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Chapati + Rice + Curd, Cucumber, Carrot",
+      "ingredient": "Carrot",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "ingredient": "Besan",
+      "quantity": "50 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "ingredient": "Spinach (chopped)",
+      "quantity": "80 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "ingredient": "Egg whites",
+      "quantity": "2",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Besan + Spinach Chila (+2 egg whites)",
+      "ingredient": "Salt, jeera, haldi",
+      "quantity": "to taste",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "ingredient": "Quinoa (cooked)",
+      "quantity": "60 g dry",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "ingredient": "Paneer (cubed)",
+      "quantity": "70 g",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "ingredient": "Black beans (cooked)",
+      "quantity": "60 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "ingredient": "Corn",
+      "quantity": "30 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "ingredient": "Salsa",
+      "quantity": "30 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "ingredient": "Guacamole",
+      "quantity": "30 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Quinoa, Paneer, Beans, Corn, Salsa, Guac, Curd",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "ingredient": "Soya chunks",
+      "quantity": "50 g dry (soak 30 min)",
+      "aisle": "Pantry",
+      "note": "soak 30 min (from source workbook)",
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "ingredient": "Green peas",
+      "quantity": "80 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "ingredient": "Methi leaves",
+      "quantity": "50 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "ingredient": "Rice",
+      "quantity": "50 g dry",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "ingredient": "Onion",
+      "quantity": "30 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "ingredient": "Jeera",
+      "quantity": "1/2 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Pulao",
+      "ingredient": "Ginger-garlic paste",
+      "quantity": "1 tsp",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Toor dal / split pigeon pea",
+      "quantity": "1 cup",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Turmeric powder",
+      "quantity": "1/4 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Dill leaves",
+      "quantity": "1/2 bunch",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Amaranth leaves",
+      "quantity": "1/2 bunch",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Fenugreek leaves",
+      "quantity": "1/2 bunch",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Green chillies",
+      "quantity": "4",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Tomato",
+      "quantity": "1",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Onion",
+      "quantity": "1",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Salt",
+      "quantity": "to taste",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Water",
+      "quantity": "as required",
+      "aisle": "Other",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Tamarind",
+      "quantity": "gooseberry-size piece",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Rasam powder",
+      "quantity": "1 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Oil",
+      "quantity": "1 tbsp",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Garlic cloves",
+      "quantity": "6",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Mustard seeds",
+      "quantity": "1 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Cumin seeds",
+      "quantity": "1/2 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Curry leaves",
+      "quantity": "few",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Dry red chilli",
+      "quantity": "2",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Massoppu Saaru (Authentic Karnataka)",
+      "ingredient": "Asafoetida / hing",
+      "quantity": "a pinch",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://homechefscooking.wordpress.com/2020/01/01/masoppu-saaru-recipe-soppu-saaru-for-ragi-mudde-recipe/"
+    },
+    {
+      "recipe_name": "Ragi Mudde",
+      "ingredient": "Ragi flour / finger millet flour",
+      "quantity": "1 cup",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": "https://www.vegrecipesofindia.com/ragi-mudde/"
+    },
+    {
+      "recipe_name": "Ragi Mudde",
+      "ingredient": "Water",
+      "quantity": "2 cups or as required",
+      "aisle": "Other",
+      "note": null,
+      "source_url": "https://www.vegrecipesofindia.com/ragi-mudde/"
+    },
+    {
+      "recipe_name": "Ragi Mudde",
+      "ingredient": "Salt",
+      "quantity": "1/4 tsp, optional",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": "https://www.vegrecipesofindia.com/ragi-mudde/"
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Spinach dal (cooked)",
+      "quantity": "130 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Cucumber",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mossoppu Saaru + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Carrot",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Spinach dal (cooked)",
+      "quantity": "130 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Cucumber",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Spinach Dal + Curd, Cucumber, Carrot — Charu No Grain",
+      "ingredient": "Carrot",
+      "quantity": "60 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Paneer, Beans, Salsa, Guac, Curd — Charu No Grain",
+      "ingredient": "Paneer (cubed)",
+      "quantity": "70 g",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Paneer, Beans, Salsa, Guac, Curd — Charu No Grain",
+      "ingredient": "Black beans (cooked)",
+      "quantity": "60 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Paneer, Beans, Salsa, Guac, Curd — Charu No Grain",
+      "ingredient": "Salsa",
+      "quantity": "30 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Paneer, Beans, Salsa, Guac, Curd — Charu No Grain",
+      "ingredient": "Guacamole",
+      "quantity": "30 g",
+      "aisle": "Pantry",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Mexican Bowl — Paneer, Beans, Salsa, Guac, Curd — Charu No Grain",
+      "ingredient": "Curd",
+      "quantity": "100 ml",
+      "aisle": "Meat + dairy",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "ingredient": "Soya chunks",
+      "quantity": "50 g dry (soak 30 min)",
+      "aisle": "Pantry",
+      "note": "soak 30 min (from source workbook)",
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "ingredient": "Green peas",
+      "quantity": "80 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "ingredient": "Methi leaves",
+      "quantity": "50 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "ingredient": "Onion",
+      "quantity": "30 g",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "ingredient": "Jeera",
+      "quantity": "1/2 tsp",
+      "aisle": "Spices",
+      "note": null,
+      "source_url": null
+    },
+    {
+      "recipe_name": "Soya Peas Methi Bowl — Charu No Rice",
+      "ingredient": "Ginger-garlic paste",
+      "quantity": "1 tsp",
+      "aisle": "Produce",
+      "note": null,
+      "source_url": null
+    }
+  ],
+  "prep": [
+    {
+      "date": "2026-08-24",
+      "time": null,
+      "duration_min": 5,
+      "task": "Soak dry chickpeas for Tuesday and Wednesday dinners",
+      "linked_recipe": "Chickpea + Paneer Salad + Curd, Cucumber, Carrot",
+      "person": "both",
+      "notes": "Both eat the chickpea + paneer dinner. Source portion is 35 g dry chickpeas per person per dinner; batch about 140 g dry for Tue+Wed for two people. Exact time can be assigned from calendar availability."
+    },
+    {
+      "date": "2026-08-30",
+      "time": null,
+      "duration_min": 30,
+      "task": "Soak soya chunks before Sunday lunch (both servings)",
+      "linked_recipe": "Soya Peas Methi Pulao",
+      "person": "both",
+      "notes": "Both eat the soya/peas/methi base; Charu skips rice and Shreya keeps rice. Soak about 100 g dry soya chunks for two servings for 30 minutes."
+    },
+    {
+      "date": "2026-08-25",
+      "time": null,
+      "duration_min": 15,
+      "task": "Wash and chop greens for Massoppu Saaru",
+      "linked_recipe": "Mossoppu Saaru + Rice + Curd, Cucumber, Carrot",
+      "person": "both",
+      "notes": "Prep the greens/curry base for both. Charu eats it without rice/chapati; Shreya keeps the carb side. HomeBase can choose exact prep time after calendar sync."
+    }
+  ]
+}

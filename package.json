@@ -1,0 +1,18 @@
+{
+  "name": "homebase-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev",
+    "seed": "node scripts/seed.mjs",
+    "import-meals": "node scripts/import-meal-json.mjs",
+    "migrate": "node scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "dotenv": "^17.4.2",
+    "googleapis": "^144.0.0",
+    "openai": "^4.77.0",
+    "ws": "^8.18.0"
+  }
+}

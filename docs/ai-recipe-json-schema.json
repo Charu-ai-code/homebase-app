@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://homebase.local/schemas/recipe-import.json",
+  "title": "HomeBase Recipe Import",
+  "description": "Paste this schema into an AI chatbot with a recipe (Instagram caption, blog, screenshot text). Ask it to return ONLY valid JSON matching this shape.",
+  "oneOf": [
+    {
+      "title": "Single recipe (fastest for Insta)",
+      "type": "object",
+      "required": ["recipe_name", "ingredients"],
+      "additionalProperties": false,
+      "properties": {
+        "recipe_name": { "type": "string", "description": "Dish title" },
+        "meal_type": {
+          "type": "string",
+          "enum": ["breakfast", "lunch", "dinner", "snack", "side", "drink", "shake", "dessert"]
+        },
+        "minutes": { "type": ["integer", "null"], "description": "Active cook time" },
+        "marinate_hours": { "type": ["number", "null"] },
+        "kcal": { "type": ["integer", "null"], "description": "Per serving" },
+        "protein_g": { "type": ["integer", "null"], "description": "Grams protein per serving" },
+        "servings": { "type": ["string", "number", "null"] },
+        "method": {
+          "description": "Steps as array of strings OR one string",
+          "oneOf": [
+            { "type": "array", "items": { "type": "string" } },
+            { "type": "string" }
+          ]
+        },
+        "cook_method": { "type": ["string", "null"], "examples": ["stovetop", "oven", "air fryer"] },
+        "tags": {
+          "description": "Comma string or array",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        },
+        "source_name": { "type": ["string", "null"], "examples": ["Instagram @handle"] },
+        "source_url": { "type": ["string", "null"], "format": "uri" },
+        "image_url": { "type": ["string", "null"], "format": "uri" },
+        "notes": { "type": ["string", "null"] },
+        "ingredients": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["ingredient"],
+            "properties": {
+              "ingredient": { "type": "string" },
+              "quantity": { "type": ["string", "null"] },
+              "aisle": {
+                "type": "string",
+                "enum": ["Produce", "Meat + dairy", "Pantry", "Frozen", "Bakery", "Spices", "Other"]
+              },
+              "note": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Multiple recipes",
+      "type": "object",
+      "required": ["recipes"],
+      "properties": {
+        "recipes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/recipe" }
+        },
+        "ingredients": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ingredientRow" }
+        }
+      }
+    },
+    {
+      "title": "Full week (meal plan + recipes)",
+      "type": "object",
+      "required": ["week_start", "week_end", "recipes", "meal_plan"],
+      "properties": {
+        "week_start": { "type": "string", "format": "date", "examples": ["2026-08-24"] },
+        "week_end": { "type": "string", "format": "date" },
+        "recipes": { "type": "array", "items": { "$ref": "#/$defs/recipe" } },
+        "ingredients": { "type": "array", "items": { "$ref": "#/$defs/ingredientRow" } },
+        "meal_plan": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/mealPlanRow" }
+        },
+        "prep": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["date", "task"],
+            "properties": {
+              "date": { "type": "string", "format": "date" },
+              "time": { "type": ["string", "null"] },
+              "task": { "type": "string" },
+              "linked_recipe": { "type": ["string", "null"] },
+              "person": { "enum": ["charu", "shreya", "both", null] }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "recipe": {
+      "type": "object",
+      "required": ["recipe_name"],
+      "properties": {
+        "recipe_name": { "type": "string" },
+        "meal_type": { "type": "string" },
+        "minutes": { "type": ["integer", "null"] },
+        "kcal": { "type": ["integer", "null"] },
+        "protein_g": { "type": ["integer", "null"] },
+        "servings": { "type": ["string", "number", "null"] },
+        "method": { "oneOf": [{ "type": "array" }, { "type": "string" }] },
+        "source_url": { "type": ["string", "null"] }
+      }
+    },
+    "ingredientRow": {
+      "type": "object",
+      "required": ["recipe_name", "ingredient"],
+      "properties": {
+        "recipe_name": { "type": "string" },
+        "ingredient": { "type": "string" },
+        "quantity": { "type": ["string", "null"] },
+        "aisle": { "type": "string" },
+        "note": { "type": ["string", "null"] }
+      }
+    },
+    "mealPlanRow": {
+      "type": "object",
+      "required": ["date", "slot", "recipe_name"],
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "slot": {
+          "type": "string",
+          "description": "drink | breakfast | snack_am | lunch | snack_pm | dinner | shake | before_sleep | lunch_charu"
+        },
+        "recipe_name": { "type": "string" },
+        "kcal": { "type": ["integer", "null"] },
+        "protein_g": { "type": ["integer", "null"] },
+        "who_eats": { "enum": ["both", "charu", "shreya", null] }
+      }
+    }
+  }
+}
