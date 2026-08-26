@@ -37,6 +37,7 @@ function shapeItem(row) {
     needByOverride: !!row.need_by_override,
     priority: row.priority || 'normal',
     priorityOverride: !!row.priority_override,
+    manualOverride: !!row.manual_override,
   };
 }
 
@@ -69,7 +70,7 @@ export default async function handler(req, res) {
 
     const rows = await sql`
       select id, name, qty, aisle, note, store, checked, source, week_start,
-             need_by, need_by_override, priority, priority_override
+             need_by, need_by_override, priority, priority_override, manual_override
       from shopping_list_items where id = ${id}
     `;
     if (!rows[0]) {
@@ -83,7 +84,7 @@ export default async function handler(req, res) {
       await recomputeShoppingItemSchedule(sql, id, week);
       const updated = await sql`
         select id, name, qty, aisle, note, store, checked, source, week_start,
-               need_by, need_by_override, priority, priority_override
+               need_by, need_by_override, priority, priority_override, manual_override
         from shopping_list_items where id = ${id}
       `;
       json(res, 200, { ok: true, item: shapeItem(updated[0]), categories: await loadShopCategories(sql) });
@@ -102,6 +103,10 @@ export default async function handler(req, res) {
     const nextNote = note !== undefined ? note : cur.note;
     const nextStore = store !== undefined ? (String(store).trim() || null) : cur.store;
     const nextChecked = typeof checked === 'boolean' ? checked : cur.checked;
+
+    const contentEdited = name !== undefined || qty !== undefined || aisle !== undefined
+      || note !== undefined || store !== undefined;
+    const nextManualOverride = contentEdited ? true : !!cur.manual_override;
 
     let nextPriority = cur.priority || 'normal';
     let nextPriorityOverride = !!cur.priority_override;
@@ -146,7 +151,8 @@ export default async function handler(req, res) {
           need_by = ${nextNeedBy},
           need_by_override = ${nextNeedByOverride},
           priority = ${nextPriority},
-          priority_override = ${nextPriorityOverride}
+          priority_override = ${nextPriorityOverride},
+          manual_override = ${nextManualOverride}
       where id = ${id}
     `;
     json(res, 200, {
@@ -156,6 +162,7 @@ export default async function handler(req, res) {
         needByOverride: nextNeedByOverride,
         priority: nextPriority,
         priorityOverride: nextPriorityOverride,
+        manualOverride: nextManualOverride,
       },
       categories: await loadShopCategories(sql),
     });

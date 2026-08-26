@@ -321,6 +321,17 @@ main#view { flex: 1; overflow: auto; background: var(--color-bg); }
 .shop-row:hover { background: var(--color-surface); }
 .shop-row.is-selected { background: var(--color-accent-100); }
 .shop-row.is-checked .shop-row-name { text-decoration: line-through; color: var(--color-neutral-500); }
+.shop-row.is-checked .shop-row-qty { color: var(--color-neutral-500); text-decoration: line-through; }
+.shop-row.is-checked { opacity: 0.72; }
+.shop-row.is-checked .shop-cat-pill,
+.shop-row.is-checked .shop-store-pill,
+.shop-row.is-checked .shop-needby-pill { opacity: 0.75; }
+.shop-locked-pill {
+  display: inline-block; font-family: var(--font-mono); font-size: 10px; font-weight: 800;
+  letter-spacing: 0.04em; padding: 2px 6px; border: 1.5px solid var(--color-text);
+  background: var(--color-surface); color: var(--color-text);
+}
+.shop-locked-pill.sm { font-size: 9px; padding: 2px 5px; }
 .shop-row .check { flex: none; cursor: pointer; background: #fff; }
 .shop-row-main {
   flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;

@@ -201,7 +201,8 @@ export async function syncShoppingFromMeals(sql, weekStartStr) {
   const todayStr = toDateStr(new Date());
 
   const existing = await sql`
-    select id, name, aisle, checked, need_by, need_by_override, priority, priority_override, store
+    select id, name, aisle, checked, need_by, need_by_override, priority, priority_override,
+           store, qty, note, manual_override
     from shopping_list_items
     where week_start = ${weekStartStr}::date and source = 'meal_plan'
   `;
@@ -257,16 +258,26 @@ export async function syncShoppingFromMeals(sql, weekStartStr) {
       id = prev.id;
       const nextNeedBy = prev.need_by_override ? prev.need_by : autoNeedBy;
       const nextPriority = prev.priority_override ? prev.priority : autoPriority;
-      await sql`
-        update shopping_list_items
-        set name = ${entry.name},
-            qty = ${qty},
-            aisle = ${entry.aisle},
-            note = ${note},
-            need_by = ${nextNeedBy},
-            priority = ${nextPriority}
-        where id = ${id}
-      `;
+      if (prev.manual_override) {
+        // Keep user edits (name/qty/aisle/note/store); only refresh auto schedule fields.
+        await sql`
+          update shopping_list_items
+          set need_by = ${nextNeedBy},
+              priority = ${nextPriority}
+          where id = ${id}
+        `;
+      } else {
+        await sql`
+          update shopping_list_items
+          set name = ${entry.name},
+              qty = ${qty},
+              aisle = ${entry.aisle},
+              note = ${note},
+              need_by = ${nextNeedBy},
+              priority = ${nextPriority}
+          where id = ${id}
+        `;
+      }
       await sql`delete from shopping_item_recipes where shopping_item_id = ${id}`;
     } else {
       const rows = await sql`
@@ -292,9 +303,22 @@ export async function syncShoppingFromMeals(sql, weekStartStr) {
   }
 
   for (const row of existing) {
-    if (!seenIds.has(row.id)) {
-      await sql`delete from shopping_list_items where id = ${row.id}`;
+    if (seenIds.has(row.id)) continue;
+    if (row.manual_override) {
+      // Keep user-edited rows even if the meal plan no longer needs them.
+      await sql`
+        update shopping_list_items
+        set source = 'manual',
+            note = case
+              when note is null or note = '' then 'Kept after meal plan change'
+              when note ilike '%kept after%' then note
+              else note || ' · kept after meal plan change'
+            end
+        where id = ${row.id}
+      `;
+      continue;
     }
+    await sql`delete from shopping_list_items where id = ${row.id}`;
   }
 
   await sql`
@@ -370,7 +394,7 @@ export async function loadHouseholdData(referenceDate = new Date()) {
 
   const shoppingRows = await sql`
     select s.id, s.name, s.qty, s.aisle, s.note, s.store, s.checked, s.source, s.week_start,
-           s.need_by, s.need_by_override, s.priority, s.priority_override
+           s.need_by, s.need_by_override, s.priority, s.priority_override, s.manual_override
     from shopping_list_items s
     where s.week_start = ${startStr}::date
     order by s.aisle, s.name
@@ -516,6 +540,7 @@ export async function loadHouseholdData(referenceDate = new Date()) {
       needByOverride: !!s.need_by_override,
       priority: s.priority || 'normal',
       priorityOverride: !!s.priority_override,
+      manualOverride: !!s.manual_override,
       checked: s.checked,
       source: s.source || 'manual',
       merged: (s.note || '').toLowerCase().includes('merged'),

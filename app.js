@@ -47,7 +47,7 @@ const state = {
   showOtherWindows: false,
   mealMode: 'all',
   listGroupBy: 'aisle',
-  listFilter: 'open',
+  listFilter: 'all',
   listSort: 'due',
   selectedItemId: null,
   slotSwaps: new Set(),
@@ -1626,12 +1626,11 @@ function isDueSoon(needBy) {
 
 function sortShoppingItems(items) {
   const sorted = [...items];
-  if (state.listSort === 'name') {
-    sorted.sort((a, b) => a.name.localeCompare(b.name));
-    return sorted;
-  }
   const priRank = { high: 0, normal: 1, low: 2 };
   sorted.sort((a, b) => {
+    // Checked items always sink to the bottom of the section (still visible).
+    if (!!a.checked !== !!b.checked) return a.checked ? 1 : -1;
+    if (state.listSort === 'name') return a.name.localeCompare(b.name);
     const pa = priRank[a.priority] ?? 1;
     const pb = priRank[b.priority] ?? 1;
     if (pa !== pb) return pa - pb;
@@ -1647,6 +1646,49 @@ function shopPriorityPill(priority) {
   if (!priority || priority === 'normal') return '';
   const label = priority === 'high' ? 'HIGH' : 'LOW';
   return `<span class="shop-priority-pill ${priority}">${label}</span>`;
+}
+
+function formatShoppingShareText() {
+  const allItems = SHOPPING_LIST.flatMap((g) => g.items);
+  const label = (weekLabel || 'This week').replace(/^Week of /, 'Week of ');
+  const lines = [`HomeBase shopping — ${label}`, ''];
+  if (state.listGroupBy === 'store') {
+    const byStore = {};
+    allItems.forEach((it) => {
+      const store = (it.store || '').trim() || 'Any store';
+      (byStore[store] = byStore[store] || []).push(it);
+    });
+    Object.keys(byStore).sort().forEach((store) => {
+      lines.push(store.toUpperCase());
+      sortShoppingItems(byStore[store]).forEach((it) => {
+        const mark = it.checked ? '✓' : '☐';
+        const qty = it.qty ? ` (${it.qty})` : '';
+        lines.push(`${mark} ${it.name}${qty}`);
+      });
+      lines.push('');
+    });
+  } else {
+    const byAisle = {};
+    allItems.forEach((it) => {
+      const aisle = it.aisle || 'Other';
+      (byAisle[aisle] = byAisle[aisle] || []).push(it);
+    });
+    const order = [...SHOP_CATEGORIES, ...Object.keys(byAisle).filter((a) => !SHOP_CATEGORIES.includes(a))];
+    order.filter((a) => byAisle[a]?.length).forEach((aisle) => {
+      lines.push(aisle.toUpperCase());
+      sortShoppingItems(byAisle[aisle]).forEach((it) => {
+        const mark = it.checked ? '✓' : '☐';
+        const qty = it.qty ? ` (${it.qty})` : '';
+        const store = it.store ? ` · ${it.store}` : '';
+        lines.push(`${mark} ${it.name}${qty}${store}`);
+      });
+      lines.push('');
+    });
+  }
+  const open = allItems.filter((i) => !i.checked).length;
+  const done = allItems.filter((i) => i.checked).length;
+  lines.push(`${open} to buy · ${done} done`);
+  return lines.join('\n').trim();
 }
 
 function findShoppingItem(id) {
@@ -1698,11 +1740,12 @@ function renderShoppingList() {
       <div class="shop-empty">
         <div class="h2">${filter === 'urgent' ? 'Nothing urgent this week'
           : filter === 'done' ? 'Nothing checked off yet'
-          : filter === 'all' ? 'List is empty' : 'All caught up'}</div>
+          : filter === 'open' ? 'All caught up'
+          : 'List is empty'}</div>
         <div class="p" style="margin-top:10px">${filter === 'urgent'
           ? 'Items marked high priority or due in the next 2 days show here.'
           : filter === 'open' && doneItems.length
-          ? `${doneItems.length} bought — switch to Done, or add something you still need.`
+          ? `${doneItems.length} bought — still shown under ALL (checked items stay at the bottom of each category).`
           : 'Tap + to add milk, produce, or anything else.'}</div>
         <button type="button" class="btn btnr shop-empty-add" data-action="addItem">+ ADD ITEM</button>
       </div>`;
@@ -1772,10 +1815,10 @@ function renderShoppingList() {
         </div>
         <div class="shop-bar-tools">
           <div class="shop-seg">
+            <span class="tg ${filter === 'all' ? 'tgr' : ''}" data-action="setListFilter" data-value="all">ALL</span>
             <span class="tg ${filter === 'open' ? 'tgr' : ''}" data-action="setListFilter" data-value="open">TO BUY</span>
             <span class="tg ${filter === 'urgent' ? 'tgr' : ''}" data-action="setListFilter" data-value="urgent">URGENT</span>
             <span class="tg ${filter === 'done' ? 'tgr' : ''}" data-action="setListFilter" data-value="done">DONE</span>
-            <span class="tg ${filter === 'all' ? 'tgr' : ''}" data-action="setListFilter" data-value="all">ALL</span>
           </div>
           <div class="shop-seg">
             <span class="tg ${state.listSort === 'due' ? 'tgr' : ''}" data-action="setListSort" data-value="due">DUE</span>
@@ -1786,6 +1829,7 @@ function renderShoppingList() {
             <span class="tg ${state.listGroupBy === 'store' ? 'tgr' : ''}" data-action="setListGroupBy" data-value="store">STORE</span>
             <span class="tg ${state.listGroupBy === 'recipe' ? 'tgr' : ''}" data-action="setListGroupBy" data-value="recipe">RECIPE</span>
           </div>
+          <span class="tg" data-action="shareShoppingList" title="Share or copy list">SHARE</span>
           ${doneItems.length ? `<span class="tg" data-action="clearCheckedItems" title="Remove checked items">CLEAR DONE</span>` : ''}
           <span class="tg" style="font-size:10px" data-action="addShopCategory">+ CATEGORY</span>
           <button type="button" class="shop-add-btn" data-action="addItem" title="Add item" aria-label="Add item">+</button>
@@ -1811,9 +1855,13 @@ function renderShoppingList() {
                   <div class="m">${selected.needByOverride ? 'Manual date' : selected.source === 'meal_plan' ? 'Auto from meal plan' : ''}</div>
                 </div>` : ''}
               ${selected.note ? `<div class="p" style="margin-top:12px">${escapeHtml(selected.note)}</div>` : ''}
-              ${selected.source === 'meal_plan' ? `
-                <div class="m" style="margin-top:8px">From this week’s meal plan — need-by follows the first scheduled meal using this ingredient.</div>
+              ${selected.manualOverride ? `<div class="m" style="margin-top:8px">Manual edit locked — meal plan sync won’t overwrite this item.</div>` : ''}
+              ${selected.source === 'meal_plan' && !selected.manualOverride ? `
+                <div class="m" style="margin-top:8px">From this week’s meal plan — need-by follows the first scheduled meal. Edit to lock your changes.</div>
                 ${selected.needByOverride ? `<button type="button" class="btn" style="margin-top:10px;width:100%" data-action="resetShopSchedule" data-id="${escapeHtml(selected.id)}">RESET TO MEAL PLAN DATE</button>` : ''}` : ''}
+              ${selected.source === 'meal_plan' && selected.manualOverride && selected.needByOverride ? `
+                <button type="button" class="btn" style="margin-top:10px;width:100%" data-action="resetShopSchedule" data-id="${escapeHtml(selected.id)}">RESET NEED-BY DATE</button>` : ''}
+              ${selected.source === 'manual' ? `<div class="m" style="margin-top:8px">Added manually — stays on the list until you delete it.</div>` : ''}
               ${selectedRecipes.length ? `
                 <div class="k" style="margin-top:18px">USED IN</div>
                 <div class="shop-recipe-chips">
@@ -1827,8 +1875,9 @@ function renderShoppingList() {
             <div class="shop-aside-block">
               <div class="k">THIS WEEK</div>
               <div class="h3" style="margin-top:10px">${escapeHtml(weekLabel || 'Meal plan week')}</div>
-              <div class="p" style="margin-top:8px">List is built from recipes on the meal plan for the same week as Calendar. Change week with ◀ ▶ — meals and shopping stay in sync.</div>
+              <div class="p" style="margin-top:8px">List builds from this week’s meal plan. Checked items stay visible (struck through at the bottom of each category). Edits you save are kept when the meal plan syncs.</div>
               <button type="button" class="btn btnr" style="margin-top:16px" data-action="addItem">+ ADD ITEM</button>
+              <button type="button" class="btn" style="margin-top:8px;width:100%;text-align:center" data-action="shareShoppingList">SHARE LIST</button>
               <button type="button" class="btn" style="margin-top:8px;width:100%;text-align:center" data-action="setTab" data-value="plan">OPEN MEAL PLAN</button>
             </div>`}
           <div class="shop-aside-block">
@@ -1871,6 +1920,7 @@ function renderShoppingRow(it) {
           ${it.store ? `<span class="shop-store-pill sm">${escapeHtml(it.store)}</span>` : ''}
           ${shopPriorityPill(it.priority)}
           ${it.needBy ? `<span class="shop-needby-pill sm">${escapeHtml(formatNeedBy(it.needBy))}</span>` : ''}
+          ${it.manualOverride ? `<span class="shop-locked-pill sm">LOCKED</span>` : ''}
           ${recipes?.length ? `<span class="m">${escapeHtml(recipes.slice(0, 2).join(', '))}${recipes.length > 2 ? '…' : ''}</span>` : ''}
         </span>
       </button>
@@ -2814,6 +2864,31 @@ const actions = {
   setListFilter(el) { state.listFilter = el.dataset.value; render(); },
   setListSort(el) { state.listSort = el.dataset.value; render(); },
   selectItem(el) { state.selectedItemId = el.dataset.id; render(); },
+  async shareShoppingList() {
+    const text = formatShoppingShareText();
+    const title = `Shopping — ${(weekLabel || 'this week').replace(/^Week of /, '')}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text });
+        toast('Shared.');
+        return;
+      }
+    } catch (err) {
+      if (err?.name === 'AbortError') return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast('List copied — paste into Messages or Notes.');
+    } catch {
+      openModal({
+        title: 'Share shopping list',
+        submitLabel: 'CLOSE',
+        fieldsHtml: `<textarea readonly rows="14" style="width:100%;font-family:var(--font-mono);font-size:12px">${escapeHtml(text)}</textarea>
+          <div class="m" style="margin-top:8px">Select all and copy.</div>`,
+        async onSubmit() {},
+      });
+    }
+  },
   async toggleItem(el) {
     const it = findShoppingItem(el.dataset.id);
     if (!it) return;
@@ -2873,7 +2948,7 @@ const actions = {
         };
         upsertShoppingItemLocal(item);
         state.selectedItemId = r.id;
-        state.listFilter = 'open';
+        state.listFilter = 'all';
         render();
         toast('Added.');
       },
@@ -2921,6 +2996,7 @@ const actions = {
           needByOverride: r.item?.needByOverride ?? !!values.needBy,
           priority: r.item?.priority ?? values.priority ?? 'normal',
           priorityOverride: r.item?.priorityOverride ?? true,
+          manualOverride: r.item?.manualOverride ?? true,
         });
         render();
         toast('Updated.');
@@ -3048,7 +3124,7 @@ const actions = {
         weekStart: weekStart || WEEK[0]?.dateStr,
       });
       await loadBootstrap();
-      state.listFilter = 'open';
+      state.listFilter = 'all';
       render();
       toast(`${item.name} → shopping list`);
     } catch (err) {
