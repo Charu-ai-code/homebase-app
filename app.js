@@ -50,6 +50,7 @@ const state = {
   listFilter: 'all',
   listSort: 'due',
   selectedItemId: null,
+  showHomeSplash: false,
   slotSwaps: new Set(),
   prepDone: false,
   selectedRecipeId: null,
@@ -243,10 +244,38 @@ function openRecipePicker({ title, onPick }) {
 
 function renderChrome() {
   document.querySelectorAll('#mainNav button').forEach((b) => {
-    b.classList.toggle('active', b.dataset.tab === state.tab);
+    b.classList.toggle('active', !state.showHomeSplash && b.dataset.tab === state.tab);
   });
+  const brand = document.querySelector('.topbar .brand');
+  if (brand) {
+    brand.classList.toggle('is-home', !!state.showHomeSplash);
+    brand.setAttribute('data-action', 'goHome');
+    brand.setAttribute('role', 'button');
+    brand.setAttribute('title', 'Home stack');
+    brand.style.cursor = 'pointer';
+  }
+  const badge = document.getElementById('userBadge');
+  const badgeName = document.getElementById('userBadgeName');
+  const badgeChip = document.getElementById('userBadgeChip');
+  if (badge && badgeName) {
+    if (session?.name) {
+      badge.hidden = false;
+      const key = String(session.name).toLowerCase();
+      badgeName.textContent = session.name;
+      if (badgeChip) {
+        badgeChip.className = 'user-badge-chip';
+        badgeChip.innerHTML = renderAvatarFace(key, 'avatar-xs');
+      }
+    } else {
+      badge.hidden = true;
+      if (badgeChip) badgeChip.innerHTML = '';
+    }
+  }
   const subnav = document.getElementById('subnav');
-  if (state.tab === 'plan') {
+  if (state.showHomeSplash) {
+    subnav.hidden = true;
+    subnav.innerHTML = '';
+  } else if (state.tab === 'plan') {
     subnav.hidden = false;
     subnav.innerHTML = `
       <span class="tg ${state.planSub === 'calendar' ? 'tgr' : ''}" data-action="setPlanSub" data-value="calendar">CALENDAR</span>
@@ -520,6 +549,7 @@ async function tryLogin(pin) {
   await loadBootstrap();
   await loadRecipes().catch(() => {});
   await Promise.all([loadWeather(), loadSpotify()]);
+  state.showHomeSplash = true;
   render();
   prefetchAi();
   maybeSyncGoogle();
@@ -634,6 +664,7 @@ async function initApp() {
     await loadRecipes().catch(() => {});
     await Promise.all([loadWeather(), loadSpotify()]);
     isLoading = false;
+    state.showHomeSplash = true;
     render();
     prefetchAi();
     maybeSyncGoogle();
@@ -645,6 +676,280 @@ async function initApp() {
 }
 
 // ---------------------------------------------------------------- dashboard
+
+const AVATAR_STORAGE_KEY = 'homebase.avatars.v1';
+const AVATAR_PRESETS = [
+  { id: 'peach', label: 'Peach', bg: '#ffc4b0' },
+  { id: 'bunny', label: 'Bunny', bg: '#f3e8ff' },
+  { id: 'fox', label: 'Fox', bg: '#ffe0c2' },
+  { id: 'cat', label: 'Cat', bg: '#e8f0ff' },
+  { id: 'sprout', label: 'Sprout', bg: '#dff5e4' },
+  { id: 'star', label: 'Star', bg: '#fff3b0' },
+  { id: 'cookie', label: 'Cookie', bg: '#f5e0c8' },
+  { id: 'moon', label: 'Moon', bg: '#dde7ff' },
+  { id: 'berry', label: 'Berry', bg: '#ffd6e7' },
+  { id: 'chick', label: 'Chick', bg: '#fff6c8' },
+];
+
+function loadAvatarMap() {
+  try {
+    return JSON.parse(localStorage.getItem(AVATAR_STORAGE_KEY) || '{}') || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveAvatarMap(map) {
+  localStorage.setItem(AVATAR_STORAGE_KEY, JSON.stringify(map));
+}
+
+function defaultAvatarId(personKey) {
+  const k = String(personKey || '').toLowerCase();
+  if (k === 'charu') return 'peach';
+  if (k === 'shreya') return 'moon';
+  return 'star';
+}
+
+function getPersonAvatar(personKey) {
+  const map = loadAvatarMap();
+  const saved = map[personKey];
+  if (saved?.type === 'image' && saved.dataUrl) return saved;
+  if (saved?.type === 'preset' && saved.id) return saved;
+  return { type: 'preset', id: defaultAvatarId(personKey) };
+}
+
+function setPersonAvatar(personKey, avatar) {
+  const map = loadAvatarMap();
+  map[personKey] = avatar;
+  saveAvatarMap(map);
+}
+
+function avatarPresetSvg(id) {
+  const face = `
+    <circle cx="32" cy="34" r="18" fill="#ffe0c2" stroke="#1a1a1a" stroke-width="2"/>
+    <circle cx="26" cy="32" r="2.2" fill="#1a1a1a"/>
+    <circle cx="38" cy="32" r="2.2" fill="#1a1a1a"/>
+    <path d="M26 40c3 3 9 3 12 0" fill="none" stroke="#c41e0a" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="22" cy="36" r="3" fill="#ff9a8a" opacity=".55"/>
+    <circle cx="42" cy="36" r="3" fill="#ff9a8a" opacity=".55"/>`;
+  const extras = {
+    peach: `<ellipse cx="32" cy="14" rx="10" ry="6" fill="#7cb342"/><circle cx="32" cy="18" r="20" fill="#ff8f70" stroke="#1a1a1a" stroke-width="2"/>${face}`,
+    bunny: `<ellipse cx="20" cy="14" rx="6" ry="14" fill="#fff" stroke="#1a1a1a" stroke-width="2"/><ellipse cx="44" cy="14" rx="6" ry="14" fill="#fff" stroke="#1a1a1a" stroke-width="2"/><circle cx="32" cy="36" r="20" fill="#fff5fb" stroke="#1a1a1a" stroke-width="2"/>${face}`,
+    fox: `<polygon points="12,28 32,8 52,28" fill="#f4a261" stroke="#1a1a1a" stroke-width="2"/><circle cx="32" cy="36" r="18" fill="#f4a261" stroke="#1a1a1a" stroke-width="2"/>${face}<ellipse cx="32" cy="42" rx="5" ry="3.5" fill="#fff"/>`,
+    cat: `<polygon points="14,22 20,8 28,22" fill="#9aa7bd" stroke="#1a1a1a" stroke-width="2"/><polygon points="36,22 44,8 50,22" fill="#9aa7bd" stroke="#1a1a1a" stroke-width="2"/><circle cx="32" cy="36" r="18" fill="#c5d0e0" stroke="#1a1a1a" stroke-width="2"/>${face}`,
+    sprout: `<circle cx="32" cy="38" r="16" fill="#ffe0c2" stroke="#1a1a1a" stroke-width="2"/><path d="M32 24c0-10 8-14 8-14s2 10-2 16" fill="#7cb342" stroke="#1a1a1a" stroke-width="1.5"/><path d="M32 24c0-10-8-14-8-14s-2 10 2 16" fill="#8bc34a" stroke="#1a1a1a" stroke-width="1.5"/>${face}`,
+    star: `<polygon points="32,6 38,22 56,22 42,34 47,52 32,42 17,52 22,34 8,22 26,22" fill="#ffe066" stroke="#1a1a1a" stroke-width="2"/>${face}`,
+    cookie: `<circle cx="32" cy="32" r="22" fill="#d4a574" stroke="#1a1a1a" stroke-width="2"/><circle cx="22" cy="24" r="3" fill="#5d4037"/><circle cx="40" cy="22" r="2.5" fill="#5d4037"/><circle cx="28" cy="40" r="2.8" fill="#5d4037"/><circle cx="42" cy="38" r="2.2" fill="#5d4037"/>${face}`,
+    moon: `<circle cx="32" cy="32" r="22" fill="#c7d6ff" stroke="#1a1a1a" stroke-width="2"/><circle cx="40" cy="26" r="14" fill="#eef2ff"/>${face}`,
+    berry: `<circle cx="24" cy="30" r="12" fill="#e91e63" stroke="#1a1a1a" stroke-width="2"/><circle cx="40" cy="30" r="12" fill="#c2185b" stroke="#1a1a1a" stroke-width="2"/><circle cx="32" cy="40" r="12" fill="#ad1457" stroke="#1a1a1a" stroke-width="2"/><ellipse cx="32" cy="16" rx="6" ry="4" fill="#7cb342"/>${face}`,
+    chick: `<circle cx="32" cy="34" r="18" fill="#ffe566" stroke="#1a1a1a" stroke-width="2"/><circle cx="32" cy="18" r="10" fill="#ffe566" stroke="#1a1a1a" stroke-width="2"/><polygon points="32,20 38,24 32,28" fill="#ff9800"/>${face}`,
+  };
+  return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${extras[id] || extras.star}</svg>`;
+}
+
+function renderAvatarFace(personKey, className = '') {
+  const av = getPersonAvatar(personKey);
+  if (av.type === 'image' && av.dataUrl) {
+    return `<img class="avatar-face ${className}" src="${av.dataUrl}" alt="" draggable="false">`;
+  }
+  const preset = AVATAR_PRESETS.find((p) => p.id === av.id) || AVATAR_PRESETS[0];
+  return `<div class="avatar-face avatar-preset ${className}" style="background:${preset.bg}">${avatarPresetSvg(preset.id)}</div>`;
+}
+
+async function compressImageFile(file, max = 256) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error('Could not read image'));
+      el.src = url;
+    });
+    const scale = Math.min(1, max / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.86);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function openAvatarPicker(personKey) {
+  const person = PEOPLE[personKey] || { name: personKey, key: personKey };
+  const current = getPersonAvatar(personKey);
+  const overlay = document.getElementById('modalOverlay');
+  const card = document.getElementById('modalCard');
+  if (!overlay || !card) return;
+  card.innerHTML = `
+    <div class="modal-title">Avatar · ${escapeHtml(person.name)}</div>
+    <div class="m" style="margin-top:8px">Pick a cute look or upload a photo.</div>
+    <div class="avatar-picker-preview">${renderAvatarFace(personKey, 'avatar-lg')}</div>
+    <div class="k" style="margin-top:14px">CUTE PRESETS</div>
+    <div class="avatar-preset-grid" id="avatarPresetGrid">
+      ${AVATAR_PRESETS.map((p) => `
+        <button type="button" class="avatar-preset-btn ${current.type === 'preset' && current.id === p.id ? 'is-on' : ''}" data-avatar-id="${p.id}" title="${escapeHtml(p.label)}" style="background:${p.bg}">
+          ${avatarPresetSvg(p.id)}
+          <span class="k">${escapeHtml(p.label)}</span>
+        </button>`).join('')}
+    </div>
+    <div class="k" style="margin-top:16px">YOUR PHOTO</div>
+    <label class="avatar-upload-btn">
+      <span class="btn" style="display:inline-block;cursor:pointer">ADD IMAGE</span>
+      <input type="file" accept="image/*" id="avatarFileInput" hidden>
+    </label>
+    ${current.type === 'image' ? `<button type="button" class="tg" id="avatarClearPhoto" style="margin-left:8px">CLEAR PHOTO</button>` : ''}
+    <div class="modal-actions">
+      <button type="button" class="btn" id="modalCancel">DONE</button>
+    </div>`;
+  overlay.hidden = false;
+  document.getElementById('modalCancel').onclick = () => { closeModal(); render(); };
+  overlay.onclick = (e) => { if (e.target === overlay) { closeModal(); render(); } };
+  card.querySelectorAll('[data-avatar-id]').forEach((btn) => {
+    btn.onclick = () => {
+      setPersonAvatar(personKey, { type: 'preset', id: btn.dataset.avatarId });
+      openAvatarPicker(personKey);
+      renderChrome();
+    };
+  });
+  document.getElementById('avatarFileInput').onchange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageFile(file);
+      setPersonAvatar(personKey, { type: 'image', dataUrl });
+      openAvatarPicker(personKey);
+      renderChrome();
+      toast('Photo saved on this device');
+    } catch (err) {
+      toast(err.message || 'Could not use that image');
+    }
+  };
+  document.getElementById('avatarClearPhoto')?.addEventListener('click', () => {
+    setPersonAvatar(personKey, { type: 'preset', id: defaultAvatarId(personKey) });
+    openAvatarPicker(personKey);
+    renderChrome();
+  });
+}
+
+function openPersonSwitch(personKey) {
+  const person = PEOPLE[personKey];
+  if (!person) return;
+  openModal({
+    title: `Switch to ${person.name}`,
+    submitLabel: 'SWITCH',
+    fieldsHtml: `
+      <div class="avatar-picker-preview" style="margin-bottom:8px">${renderAvatarFace(personKey, 'avatar-lg')}</div>
+      <div class="m">Enter ${escapeHtml(person.name)}’s PIN to take the controller.</div>
+      <label><span class="k">PIN</span>
+        <input name="pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" required placeholder="••••">
+      </label>`,
+    onSubmit: async (values) => {
+      const pin = String(values.pin || '').trim();
+      if (!pin) throw new Error('PIN required');
+      const r = await HomeBaseAPI.login(pin);
+      const signed = String(r.person?.name || '').toLowerCase();
+      hideLogin();
+      await loadBootstrap();
+      await loadRecipes().catch(() => {});
+      await Promise.all([loadWeather(), loadSpotify()]);
+      state.showHomeSplash = true;
+      render();
+      prefetchAi();
+      maybeSyncGoogle();
+      startBackgroundSync();
+      if (signed !== personKey) {
+        toast(`Signed in as ${r.person.name} (that PIN)`);
+      } else {
+        toast(`Switched to ${person.name}`);
+      }
+    },
+  });
+}
+
+function renderHomeCharacters() {
+  const active = String(session?.name || '').toLowerCase();
+  const cast = Object.values(PEOPLE || {});
+  if (!cast.length) {
+    return `
+      <div class="home-cast">
+        <div class="home-char is-you">
+          <div class="home-char-frame">${renderAvatarFace('you')}</div>
+          <div class="home-char-name">${escapeHtml(session?.name || 'You')}</div>
+          <div class="k">YOU · ONLINE</div>
+        </div>
+      </div>`;
+  }
+  return `
+    <div class="home-cast">
+      ${cast.map((p) => {
+        const key = p.key || p.name?.toLowerCase();
+        const isYou = key === active;
+        return `
+          <div class="home-char ${isYou ? 'is-you' : 'is-switchable'}" data-person="${escapeHtml(key)}">
+            <button type="button" class="home-char-hit"
+              data-action="${isYou ? 'editAvatar' : 'switchPerson'}"
+              data-person="${escapeHtml(key)}"
+              title="${isYou ? 'Change avatar' : `Switch to ${escapeHtml(p.name)}`}">
+              <div class="home-char-frame">
+                ${renderAvatarFace(key)}
+                ${isYou ? '<span class="home-char-badge">YOU</span>' : '<span class="home-char-badge home-char-switch">SWITCH</span>'}
+              </div>
+              <div class="home-char-name">${escapeHtml(p.name)}</div>
+              <div class="k">${isYou ? 'SIGNED IN · TAP AVATAR' : 'TAP TO SIGN IN'}</div>
+              ${p.calorieTarget ? `<div class="m">${p.calorieTarget} kcal target</div>` : ''}
+            </button>
+            <button type="button" class="tg home-char-avatar-btn" data-action="editAvatar" data-person="${escapeHtml(key)}">AVATAR</button>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderHomeSplash() {
+  const day = WEEK[TODAY_INDEX] || WEEK[0];
+  const openShop = SHOPPING_LIST.flatMap((g) => g.items).filter((i) => !i.checked).length;
+  const who = session?.name || 'Friend';
+  const dinner = day?.dinner?.name || day?.meals?.dinner?.name || '—';
+  document.getElementById('view').innerHTML = `
+    <div class="home-splash">
+      <div class="home-splash-stack">
+        <div class="home-splash-head">
+          <div class="home-splash-title">HOMEBASE</div>
+          <div class="k" style="margin-top:8px">HOME STACK · TWO LIVES · ONE HOME</div>
+          <div class="p" style="margin-top:12px;max-width:460px">Tap the other person to switch · AVATAR to change looks. Click HOMEBASE anytime to return here.</div>
+        </div>
+        ${renderHomeCharacters()}
+        <div class="home-splash-user">
+          ${renderAvatarFace(String(who).toLowerCase(), 'avatar-sm')}
+          <div>
+            <div class="k">CONTROLLER</div>
+            <div class="h2" style="margin-top:4px">${escapeHtml(String(who))}</div>
+          </div>
+        </div>
+        <div class="home-card-grid">
+          <button type="button" class="home-card" data-action="openHomeCard" data-value="today">
+            <span class="home-card-chrome"><span class="home-card-dots" aria-hidden="true"></span><span class="k">CARD 1</span></span>
+            <span class="home-card-title">TODAY</span>
+            <span class="home-card-blurb">Timeline, prep, and what’s for dinner.</span>
+            <span class="m home-card-meta">${escapeHtml(dinner)}</span>
+          </button>
+          <button type="button" class="home-card" data-action="openHomeCard" data-value="plan">
+            <span class="home-card-chrome"><span class="home-card-dots" aria-hidden="true"></span><span class="k">CARD 2</span></span>
+            <span class="home-card-title">PLAN</span>
+            <span class="home-card-blurb">Calendar, meal plan, and recipe stack.</span>
+            <span class="m home-card-meta">${recipeCount || RECIPES.length || 0} recipes</span>
+          </button>
+          <button type="button" class="home-card" data-action="openHomeCard" data-value="list">
+            <span class="home-card-chrome"><span class="home-card-dots" aria-hidden="true"></span><span class="k">CARD 3</span></span>
+            <span class="home-card-title">LIST</span>
+            <span class="home-card-blurb">Weekly shopping — categories, stores, need-by.</span>
+            <span class="m home-card-meta">${openShop} to buy</span>
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
 
 function renderDashboard() {
   if (!WEEK.length) {
@@ -786,7 +1091,6 @@ function renderGoogleBar() {
         : `<button class="btn" data-action="connectGoogle" data-person="shreya" ${who && who !== 'shreya' ? 'title="Log in as Shreya first"' : ''}>CONNECT SHREYA</button>`}
       <button class="btn" data-action="syncGoogle">SYNC NOW</button>
       <button class="btn btnr" data-action="addCalEvent">+ EVENT</button>
-      ${session ? `<span class="session-bar">${escapeHtml(session.name)} · <span data-action="logout" style="cursor:pointer;color:var(--color-accent)">LOG OUT</span></span>` : ''}
     </div>`;
 }
 
@@ -1432,11 +1736,18 @@ function renderRecipeGrid() {
           ${list.map((r) => `
             <div class="recipe-card">
               <button type="button" class="recipe-card-del" data-action="deleteRecipe" data-id="${r.id}" title="Delete recipe">×</button>
-              <div data-action="openRecipe" data-id="${r.id}">
-                ${recipeImgTag(r, 'recipe-card-img')}
+              <div class="recipe-card-hit" data-action="openRecipe" data-id="${r.id}">
+                <div class="recipe-card-chrome">
+                  <span class="recipe-card-dots" aria-hidden="true"></span>
+                  <span class="k">${(r.tags || []).slice(0, 1).map((t) => t.toUpperCase()).join('') || 'CARD'}</span>
+                </div>
+                <div class="recipe-card-art">
+                  ${recipeImgTag(r, 'recipe-card-img')}
+                  <div class="recipe-card-dither" aria-hidden="true"></div>
+                </div>
                 <div class="recipe-card-body">
                   <div class="k">${(r.tags || []).slice(0, 2).map((t) => t.toUpperCase()).join(' · ') || 'RECIPE'}</div>
-                  <div class="h3" style="margin-top:6px">${escapeHtml(r.name)}</div>
+                  <div class="h3 recipe-card-name">${escapeHtml(r.name)}</div>
                   <div class="row" style="gap:12px;margin-top:10px;flex-wrap:wrap">
                     <span class="m">${r.kcal != null ? r.kcal + ' kcal' : '— kcal'}</span>
                     <span class="m">${r.protein != null ? r.protein + 'g protein' : ''}</span>
@@ -1938,6 +2249,7 @@ function render() {
     return;
   }
   renderChrome();
+  if (state.showHomeSplash) return renderHomeSplash();
   if (state.tab === 'today') return renderDashboard();
   if (state.tab === 'plan') {
     if (state.planSub === 'calendar') return renderCalendar();
@@ -1953,10 +2265,42 @@ function render() {
 
 const actions = {
   setTab(el) {
+    state.showHomeSplash = false;
     state.tab = el.dataset.value;
     state.selectedDayKey = null;
     if (state.tab === 'plan') state.planSub = 'meals';
     render();
+  },
+  goHome() {
+    if (!session) return;
+    state.showHomeSplash = true;
+    state.selectedRecipeId = null;
+    state.selectedDayKey = null;
+    render();
+  },
+  openHomeCard(el) {
+    const card = el.dataset.value;
+    state.showHomeSplash = false;
+    if (card === 'today') {
+      state.tab = 'today';
+    } else if (card === 'plan') {
+      state.tab = 'plan';
+      state.planSub = 'meals';
+    } else if (card === 'list') {
+      state.tab = 'list';
+    }
+    state.selectedDayKey = null;
+    render();
+  },
+  switchPerson(el) {
+    const key = el.dataset.person;
+    if (!key || key === String(session?.name || '').toLowerCase()) return;
+    openPersonSwitch(key);
+  },
+  editAvatar(el) {
+    const key = el.dataset.person;
+    if (!key) return;
+    openAvatarPicker(key);
   },
   setPlanSub(el) {
     state.planSub = el.dataset.value;
@@ -3311,8 +3655,10 @@ const actions = {
 document.getElementById('mainNav').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-tab]');
   if (!btn) return;
+  state.showHomeSplash = false;
   state.tab = btn.dataset.tab;
   state.selectedDayKey = null;
+  if (state.tab === 'plan') state.planSub = state.planSub || 'meals';
   render();
 });
 

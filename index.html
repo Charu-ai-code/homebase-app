@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HomeBase — Two lives, one home</title>
-<link rel="stylesheet" href="styles.css?v=20260826">
+<link rel="stylesheet" href="styles.css?v=20260908f">
 </head>
 <body>
 <div id="app">
   <header class="topbar">
     <div class="brand">
       <div class="name">HOMEBASE</div>
-      <div class="k" style="margin-top:3px">TWO LIVES · ONE HOME</div>
+      <div class="k" style="margin-top:3px">STACK · HOME CARD</div>
     </div>
     <div class="clock">
       <div class="time" id="clockTime">--:--</div>
@@ -26,6 +26,14 @@
       <button data-tab="plan">PLAN</button>
       <button data-tab="list">LIST</button>
     </nav>
+    <div class="user-badge" id="userBadge" hidden>
+      <span class="user-badge-chip" id="userBadgeChip" aria-hidden="true"></span>
+      <div class="user-badge-text">
+        <div class="k">SIGNED IN</div>
+        <div class="user-badge-name" id="userBadgeName">—</div>
+      </div>
+      <button type="button" class="tg" data-action="logout" title="Log out">LOG OUT</button>
+    </div>
   </header>
 
   <div class="subnav" id="subnav" hidden></div>
@@ -36,9 +44,9 @@
 <div id="loginOverlay" class="login-overlay" hidden>
   <div class="login-card">
     <div class="name">HOMEBASE</div>
-    <div class="k" style="margin-top:6px">ENTER YOUR PIN</div>
+    <div class="k" style="margin-top:8px">HOME STACK · ENTER PIN</div>
     <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off">
-    <button class="btn btnr" id="pinSubmit" type="button">UNLOCK</button>
+    <button class="btn btnr" id="pinSubmit" type="button">GO TO CARD</button>
     <div class="m" id="loginError" style="margin-top:12px;color:var(--color-accent-700)"></div>
   </div>
 </div>
@@ -49,8 +57,8 @@
 
 <div id="ipodDock" class="ipod-dock" hidden aria-label="Spotify iPod player"></div>
 
-<script src="api-client.js?v=20260826"></script>
-<script src="spotify-player.js?v=20260826"></script>
-<script src="app.js?v=20260826"></script>
+<script src="api-client.js?v=20260908f"></script>
+<script src="spotify-player.js?v=20260908f"></script>
+<script src="app.js?v=20260908f"></script>
 </body>
 </html>
